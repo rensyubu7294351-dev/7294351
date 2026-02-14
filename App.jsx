@@ -281,10 +281,9 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       // ターゲット色ID (1:ラベンダー, 5:バナナ, 6:ミカン)
       const targetColorIds = ['1', '5', '6'];
       
-      // ★修正: すべての予定を候補にする（キャンセル済み以外）
-      // ここで色によるフィルタリングを行わないことで、既定色の予定も表示されます
+// フィルター条件を「削除済み以外すべて」に変更し、既定色も通すようにします
       const newCandidates = (data.items || [])
-        .filter(event => event.status !== 'cancelled') 
+        .filter(event => event.status !== 'cancelled') // ここで色を絞り込まない
         .map(event => {
           const startObj = new Date(event.start.dateTime || event.start.date);
           
@@ -315,13 +314,13 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
 
       setFetchedEvents(newCandidates);
       
-      // ★修正: 「バナナ・ミカン・ラベンダー」だけ自動でチェックを入れる
+// 初期状態でチェックを入れるのは「指定した3色」のみにする
       const autoSelectIds = newCandidates
-        .filter(e => e.colorId !== 'default' && targetColorIds.includes(e.colorId))
+        .filter(e => targetColorIds.includes(e.colorId))
         .map(e => e.id);
         
       setSelectedEventIds(new Set(autoSelectIds));
-
+      
     } catch (error) {
       console.error(error);
       alert('カレンダーの読み込みに失敗しました: ' + error.message);
@@ -1133,4 +1132,5 @@ export default function App() {
     />
   );
 }
+
 
