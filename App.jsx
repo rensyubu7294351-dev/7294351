@@ -388,7 +388,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
   };
 
 const fetchCalendarEvents = async () => {
-  console.log("読み込まれたAPIキー:", import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY); //テスト追加
+
   setIsFetching(true);
   try {
     const API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
@@ -426,12 +426,18 @@ const fetchCalendarEvents = async () => {
       // 色IDが「undefined（既定の色）」の予定も許可し、
       // 色IDがある場合は指定の色（1, 5, 6）のみ許可する。
       .filter(event => {
+        // デバッグ：ここでもし全部消えていないか確認
+        const isCancelled = event.status === 'cancelled';
          if (!event.colorId) return true;
          return targetColorIds.includes(event.colorId);
       })
       .map(event => {
         const startObj = new Date(event.start.dateTime || event.start.date);
-        
+
+        // 日付が正しく変換できているか
+          if (isNaN(startObj.getTime())) {
+            console.warn("日付変換に失敗した予定:", event.summary);
+          }
         const yyyy = startObj.getFullYear();
         const mm = String(startObj.getMonth() + 1).padStart(2, '0');
         const dd = String(startObj.getDate()).padStart(2, '0');
@@ -454,7 +460,15 @@ const fetchCalendarEvents = async () => {
           time: timeStr,
           location: event.location || '未定'
         };
-      });
+      }catch (e) {
+          console.error("個別の予定の加工に失敗:", event.summary, e);
+          return null;
+        }
+      })
+      .filter(e => e !== null); // 失敗したものを取り除く
+
+    console.log("2. 加工後の候補数:", newCandidates.length);
+    console.log("3. 加工後のデータ一覧:", newCandidates);
 
     setFetchedEvents(newCandidates);
     
@@ -1270,4 +1284,5 @@ export default function App() {
     />
   );
 }
+
 
