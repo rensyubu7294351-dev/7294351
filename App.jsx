@@ -460,7 +460,7 @@ const fetchCalendarEvents = async () => {
           time: timeStr,
           location: event.location || '未定'
         };
-      }catch (e) {
+      } catch (e) {
           console.error("個別の予定の加工に失敗:", event.summary, e);
           return null;
         }
@@ -471,6 +471,19 @@ const fetchCalendarEvents = async () => {
     console.log("3. 加工後のデータ一覧:", newCandidates);
 
     setFetchedEvents(newCandidates);
+const autoSelectIds = newCandidates
+      .filter(e => e.colorId !== 'default' && targetColorIds.includes(e.colorId))
+      .map(e => e.id);
+        
+    setSelectedEventIds(new Set(autoSelectIds));
+
+  } catch (error) {
+    console.error("エラー発生:", error);
+    alert('エラー: ' + error.message);
+  } finally {
+    setIsFetching(false);
+  }
+};
     
     const newIds = new Set(newCandidates.map(e => e.id));
     setSelectedEventIds(newIds);
@@ -1284,5 +1297,6 @@ export default function App() {
     />
   );
 }
+
 
 
