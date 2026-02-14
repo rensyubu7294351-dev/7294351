@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 
 // --- Firebase Initialization ---
+// ★ここは元のキーのまま変更していません
 const firebaseConfig = {
   apiKey: "AIzaSyDQ6nxN4Xv9WOFVArdGX7gg788iKPPThdM",
   authDomain: "project-3922562979058963012.firebaseapp.com",
@@ -60,7 +61,6 @@ const FAMILIES = [
   "みぃファミリー", "ゆつきファミリー", "甘ドリファミリー"
 ];
 
-// ★★★ メンバー名簿 ★★★
 const MEMBER_LIST = [
   { family: "おせきファミリー", name: "おせき" }, { family: "おせきファミリー", name: "のん" },
   { family: "おせきファミリー", name: "ぴーじー" }, { family: "おせきファミリー", name: "れんれん" },
@@ -144,6 +144,7 @@ const STATUS_OPTIONS = {
   undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
 };
 
+// 色ID定義（Googleカレンダーの色IDに対応）
 const TARGET_COLORS = {
   "1": { name: "ラベンダー", class: "bg-purple-100 text-purple-700" },
   "5": { name: "バナナ", class: "bg-yellow-100 text-yellow-700" },
@@ -155,47 +156,34 @@ const ADMIN_PASSWORD = "yosakoi";
 // --- Helper Functions ---
 const getDayInfo = (dateString) => {
   if (!dateString) return { dayStr: '', colorClass: 'bg-gray-100 text-gray-600' };
-  
   const [y, m, d] = dateString.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   const dayIndex = date.getDay(); 
   const days = ['(日)', '(月)', '(火)', '(水)', '(木)', '(金)', '(土)'];
   const dayStr = days[dayIndex];
-
   let colorClass = 'bg-gray-100 text-gray-600'; 
-  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200'; // Sun: Green
-  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';   // Wed: Light Blue
-  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';   // Sat: Pink
-
+  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200';
+  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';
+  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';
   return { dayStr, colorClass };
 };
 
-// LocalStorage Key
 const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // --- Components ---
 
-// 1. Auth Screen (List Selection Only)
+// 1. Auth Screen
 const AuthScreen = ({ onLogin }) => {
   const [family, setFamily] = useState('');
   const [selectedName, setSelectedName] = useState('');
-
-  // Filter members from constant list
   const familyMembers = useMemo(() => {
     if (!family) return [];
-    
-    return MEMBER_LIST
-      .filter(m => m.family === family)
-      .sort((a, b) => 0); 
+    return MEMBER_LIST.filter(m => m.family === family).sort((a, b) => 0); 
   }, [family]);
-
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    if (family && selectedName) {
-      onLogin(family, selectedName);
-    }
+    if (family && selectedName) onLogin(family, selectedName);
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 safe-area-top safe-area-bottom">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm border border-indigo-50">
@@ -206,67 +194,33 @@ const AuthScreen = ({ onLogin }) => {
           <h1 className="text-xl font-bold text-gray-800">よさこい出欠</h1>
           <p className="text-xs text-gray-400 mt-1">メンバー選択ログイン</p>
         </div>
-
         <form onSubmit={handleLoginSubmit} className="space-y-4">
           <div className="bg-blue-50 p-3 rounded-lg flex gap-2 items-start text-xs text-blue-700 mb-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <p>あなたの所属ファミリーと名前を選んで「ログイン」を押してください。</p>
           </div>
-
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">所属ファミリー</label>
             <div className="relative">
-              <select
-                value={family}
-                onChange={(e) => {
-                  setFamily(e.target.value);
-                  setSelectedName('');
-                }}
-                className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700"
-              >
+              <select value={family} onChange={(e) => { setFamily(e.target.value); setSelectedName(''); }} className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700">
                 <option value="">▼ ファミリーを選択</option>
-                {FAMILIES.map((f) => (
-                  <option key={f} value={f}>{f}</option>
-                ))}
+                {FAMILIES.map((f) => (<option key={f} value={f}>{f}</option>))}
               </select>
               <ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
           </div>
-
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">名前を選択</label>
             <div className="relative">
-              
-              {!family && (
-                <div 
-                  className="absolute inset-0 z-10" 
-                  onClick={() => alert("先にファミリーを選択してください！")}
-                />
-              )}
-
-              <select
-                value={selectedName}
-                onChange={(e) => setSelectedName(e.target.value)}
-                disabled={!family} 
-                className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700 disabled:opacity-50 disabled:bg-gray-100"
-              >
+              {!family && (<div className="absolute inset-0 z-10" onClick={() => alert("先にファミリーを選択してください！")}/>)}
+              <select value={selectedName} onChange={(e) => setSelectedName(e.target.value)} disabled={!family} className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700 disabled:opacity-50 disabled:bg-gray-100">
                 <option value="">あなたの名前を選択</option>
-                {familyMembers.map((m) => (
-                  <option key={m.name} value={m.name}>{m.name}</option>
-                ))}
+                {familyMembers.map((m) => (<option key={m.name} value={m.name}>{m.name}</option>))}
               </select>
               <ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
-            {family && familyMembers.length === 0 && (
-               <p className="text-[10px] text-red-400 mt-1">※名簿データがありません。管理者に連絡してください。</p>
-            )}
           </div>
-
-          <button
-            type="submit"
-            disabled={!family || !selectedName}
-            className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-lg shadow-indigo-200"
-          >
+          <button type="submit" disabled={!family || !selectedName} className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-lg shadow-indigo-200">
             ログイン
           </button>
         </form>
@@ -285,11 +239,8 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-    } else {
-      alert("パスワードが違います");
-    }
+    if (password === ADMIN_PASSWORD) setIsAuthenticated(true);
+    else alert("パスワードが違います");
   };
 
   const fetchCalendarEvents = async () => {
@@ -304,10 +255,10 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
           return;
       }
 
-      // 期間設定：今月の1日 〜 来月の末日
+      // ★期間設定：今月の1日 〜 再来月の0日（＝来月の末日）
       const now = new Date();
       const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      // getMonth() + 2 の 0日目 = 来月の末日
+      // getMonth() + 2 の 0日目 = 来月の末日 (例: 2月なら 4月0日=3月31日)
       const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59);
 
       const timeMin = startOfThisMonth.toISOString();
@@ -321,12 +272,13 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       const data = await response.json();
       console.log("★★Googleから届いた生データ★★:", data.items); 
 
-      // 色IDの定義 (1:ラベンダー, 5:バナナ, 6:ミカン)
+      // ターゲット色ID (1:ラベンダー, 5:バナナ, 6:ミカン)
       const targetColorIds = ['1', '5', '6'];
       
+      // ★フィルター: 色IDが指定のもの（1,5,6）だけを厳密に通す
       const newCandidates = (data.items || [])
-        // 指定の色（1, 5, 6）のみ許可
         .filter(event => {
+           // colorIdが存在し、かつターゲットリストに含まれる場合のみ許可
            return event.colorId && targetColorIds.includes(event.colorId);
         })
         .map(event => {
@@ -353,7 +305,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
             date: dateStr,
             time: timeStr,
             location: event.location || '未定',
-            colorId: event.colorId // 表示用に保持
+            colorId: event.colorId
           };
         });
 
@@ -911,4 +863,263 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                         </td>
                       {visibleEvents.map(event => {
                           const status = u.responses?.[event.id] || 'undecided';
-                          const comment = u.comments
+                          const comment = u.comments?.[event.id]; // コメントを取得
+                          
+                          let symbol = '－';
+                          let colorClass = 'text-gray-300';
+                          
+                          if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/30'; }
+                          if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/30'; }
+                          if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-500 font-bold bg-yellow-50/30'; }
+                          if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-500 font-bold bg-purple-50/30'; }
+
+                          return (
+                            <td 
+                              key={`${u.uid}-${event.id}`} 
+                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
+                              title={comment || ''}
+                              onClick={() => {
+                                if (comment) alert(`${u.name}さんのコメント：\n${comment}`);
+                              }}
+                            >
+                              <div className="flex flex-col items-center justify-center">
+                                <span>{symbol}</span>
+                                {comment && (
+                                  <span className="text-[8px] sm:text-[9px] text-gray-600 bg-white/80 px-1.5 mt-0.5 rounded border border-gray-200 truncate w-12 sm:w-16 shadow-sm">
+                                    {comment}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    {filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan={visibleEvents.length + 1} className="px-4 py-12 text-center text-gray-400 text-xs">
+                          表示するメンバーがいません
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
+        {activeTab === 'admin' && (
+          <AdminPanel currentEvents={events} onAddEvents={onAddEvents} onTogglePublish={onTogglePublish} />
+        )}
+      </main>
+    </div>
+  );
+};
+
+// 5. Main App Container
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [allData, setAllData] = useState({});
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const savedUserId = localStorage.getItem(LS_USER_ID_KEY);
+    
+    const initApp = async () => {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
+    };
+    initApp();
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        // 2. Fetch Events
+        const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
+        const unsubscribeEvents = onSnapshot(eventsRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const rawItems = docSnap.data().items || [];
+            
+            // ★修正: 初期ダミーデータ（2024-05-18）や古いモックデータを強制的に除外
+            const items = rawItems.filter(item => 
+              item.date !== '2024-05-18' && 
+              !item.id.startsWith('evt-')
+            );
+            
+            items.sort((a, b) => new Date(`${a.date} ${a.time.split('-')[0]}`) - new Date(`${b.date} ${b.time.split('-')[0]}`));
+            setEvents(items);
+          } else {
+            setDoc(eventsRef, { items: [] });
+            setEvents([]);
+          }
+        });
+
+        // 3. Fetch All Users Data
+        const dataRef = collection(db, 'artifacts', appId, 'public', 'data', 'attendance');
+        const unsubscribeData = onSnapshot(dataRef, (snapshot) => {
+          const data = {};
+          snapshot.forEach(doc => {
+            data[doc.id] = { uid: doc.id, ...doc.data() };
+          });
+          setAllData(data);
+          
+          if (!user && savedUserId) {
+            if (data[savedUserId]) {
+              setUser({ uid: savedUserId, ...data[savedUserId] });
+            } 
+          }
+          setLoading(false);
+        });
+        
+        return () => {
+          unsubscribeEvents();
+          unsubscribeData();
+        };
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []); 
+
+  const handleLogin = async (family, name) => {
+    const userId = `${family}_${name}`;
+    
+    try {
+      let userData = allData[userId];
+      
+      if (!userData) {
+         userData = {
+          name,
+          family,
+          responses: {},
+          updatedAt: serverTimestamp(),
+        };
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', userId), userData);
+      }
+      
+      localStorage.setItem(LS_USER_ID_KEY, userId);
+      setUser({ uid: userId, ...userData });
+
+    } catch (e) {
+      console.error("Error:", e);
+      alert("ログインに失敗しました");
+    }
+  };
+
+  const handleUpdateStatus = async (eventId, status) => {
+    if (!user) return;
+    const newResponses = { ...user.responses, [eventId]: status };
+    setUser({ ...user, responses: newResponses }); 
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
+        responses: newResponses,
+        updatedAt: serverTimestamp()
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  const handleUpdateComment = async (eventId, comment) => {
+    if (!user) return;
+    const newComments = { ...(user.comments || {}), [eventId]: comment };
+    setUser({ ...user, comments: newComments }); 
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
+        comments: newComments,
+        updatedAt: serverTimestamp()
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  // ★追加: 公開/非公開の切り替え機能
+  const handleTogglePublish = async (eventId) => {
+    try {
+      const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
+      const docSnap = await getDoc(eventsRef);
+      if (docSnap.exists()) {
+        const items = docSnap.data().items || [];
+        const updatedItems = items.map(item => {
+          if (item.id === eventId) {
+            const currentStatus = item.isPublished !== false; // Default true if undefined
+            return { ...item, isPublished: !currentStatus };
+          }
+          return item;
+        });
+        await updateDoc(eventsRef, { items: updatedItems });
+      }
+    } catch (e) {
+      console.error(e);
+      alert("更新に失敗しました");
+    }
+  };
+
+  const handleAddEvents = async (newEvents) => {
+    try {
+      const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
+      
+      const docSnap = await getDoc(eventsRef);
+      let currentItems = [];
+      if (docSnap.exists()) {
+        currentItems = docSnap.data().items || [];
+      }
+
+      let updatedItems = [...currentItems];
+      newEvents.forEach(newEvent => {
+        const index = updatedItems.findIndex(item => item.id === newEvent.id);
+        if (index > -1) {
+          // 既存の予定を更新（※手動で設定した isPublished の状態は維持する）
+          updatedItems[index] = { 
+            ...newEvent, 
+            isPublished: updatedItems[index].isPublished !== false 
+          };
+        } else {
+          // 新しい予定はデフォルトで公開にする
+          updatedItems.push({ ...newEvent, isPublished: true });
+        }
+      });
+
+      await updateDoc(eventsRef, { items: updatedItems });
+      alert(`${newEvents.length}件の予定を更新/追加しました`);
+
+    } catch (e) {
+      console.error(e);
+      alert("失敗しました");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(LS_USER_ID_KEY);
+    setUser(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen onLogin={handleLogin} />;
+  }
+
+  return (
+    <Dashboard 
+      user={user} 
+      events={events} 
+      allData={allData} 
+      onUpdateStatus={handleUpdateStatus} 
+      onUpdateComment={handleUpdateComment}
+      onLogout={handleLogout}
+      onAddEvents={handleAddEvents}
+      onTogglePublish={handleTogglePublish}
+    />
+  );
+}
