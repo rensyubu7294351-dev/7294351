@@ -388,6 +388,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
   };
 
 const fetchCalendarEvents = async () => {
+  console.log("読み込まれたAPIキー:", import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY); //テスト追加
   setIsFetching(true);
   try {
     const API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
@@ -1269,3 +1270,4 @@ export default function App() {
     />
   );
 }
+
