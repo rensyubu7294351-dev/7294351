@@ -243,85 +243,63 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
     if (password === ADMIN_PASSWORD) setIsAuthenticated(true);
     else alert("パスワードが違います");
   };
+const fetchCalendarEvents = async () => {
+  setIsFetching(true);
+  try {
+    const API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
+    const CALENDAR_ID = "rensyubu7294351@gmail.com";
+    
+    if (!API_KEY) throw new Error("APIキーがありません");
 
-  const fetchCalendarEvents = async () => {
-    setIsFetching(true);
-    try {
-      const API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
-      const CALENDAR_ID = "rensyubu7294351@gmail.com";
-      
-      if (!API_KEY) throw new Error("APIキーが設定されていません。");
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfTwoMonthsLater = new Date(now.getFullYear(), now.getMonth() + 3, 0, 23, 59, 59);
 
-      const now = new Date();
-      const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59);
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${startOfThisMonth.toISOString()}&timeMax=${endOfTwoMonthsLater.toISOString()}&singleEvents=true&orderBy=startTime`;
 
-      const timeMin = startOfThisMonth.toISOString();
-      const timeMax = endOfNextMonth.toISOString();
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("取得失敗");
+    
+    const data = await response.json();
+    console.log("★受信件数:", data.items?.length);
 
-      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+    // フロー1: 「すべて（既定も含む）」を表示させるため、ここでは filter をかけない
+    const newCandidates = (data.items || [])
+      .filter(event => event.status !== 'cancelled')
+      .map(event => {
+        const startVal = event.start.dateTime || event.start.date;
+        const startObj = new Date(startVal);
+        if (isNaN(startObj.getTime())) return null;
 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Google APIからの取得に失敗しました。");
-      
-      const data = await response.json();
-      console.log("★★Googleから届いた生データ★★:", data.items); 
+        return {
+          id: event.id,
+          title: event.summary || 'タイトルなし',
+          date: `${startObj.getFullYear()}-${String(startObj.getMonth() + 1).padStart(2, '0')}-${String(startObj.getDate()).padStart(2, '0')}`,
+          time: event.start.dateTime ? `${String(startObj.getHours()).padStart(2, '0')}:${String(startObj.getMinutes()).padStart(2, '0')}` : '終日',
+          location: event.location || '未定',
+          colorId: event.colorId || 'default' // ★重要: colorIdを保持する
+        };
+      })
+      .filter(e => e !== null);
 
-      // ターゲット色ID (1:ラベンダー, 5:バナナ, 6:ミカン)
-      const targetColorIds = ['1', '5', '6'];
-      
-      // 加工処理
-      const newCandidates = (data.items || [])
-        .filter(event => event.status !== 'cancelled')
-        .map(event => {
-          const startVal = event.start.dateTime || event.start.date;
-          const startObj = new Date(startVal);
-          
-          if (isNaN(startObj.getTime())) return null;
-
-          const yyyy = startObj.getFullYear();
-          const mm = String(startObj.getMonth() + 1).padStart(2, '0');
-          const dd = String(startObj.getDate()).padStart(2, '0');
-          const dateStr = `${yyyy}-${mm}-${dd}`;
-          
-          let timeStr = '終日';
-          if (event.start.dateTime) {
-            const startH = String(startObj.getHours()).padStart(2, '0');
-            const startM = String(startObj.getMinutes()).padStart(2, '0');
-            const endObj = new Date(event.end.dateTime || event.end.date);
-            const endH = String(endObj.getHours()).padStart(2, '0');
-            const endM = String(endObj.getMinutes()).padStart(2, '0');
-            timeStr = `${startH}:${startM}-${endH}:${endM}`;
-          }
-
-          return {
-            id: event.id,
-            title: event.summary || 'タイトルなし',
-            date: dateStr,
-            time: timeStr,
-            location: event.location || '未定',
-            colorId: event.colorId || 'default'
-          };
-        })
-        .filter(e => e !== null);
-
-      console.log("加工後のデータ件数:", newCandidates.length);
-      setFetchedEvents(newCandidates);
-      
-      // 特定色のみ初期チェック
-      const autoSelectIds = newCandidates
-        .filter(e => targetColorIds.includes(e.colorId))
-        .map(e => e.id);
+    console.log("★加工後の全データ（ここを確認！）:", newCandidates);
+    setFetchedEvents(newCandidates);
+    
+    // フロー2: 自動チェックは「バナナ(5)・ミカン(6)・ラベンダー(1)」のみ
+    const targetColorIds = ['1', '5', '6'];
+    const autoSelectIds = newCandidates
+      .filter(e => targetColorIds.includes(e.colorId))
+      .map(e => e.id);
         
-      setSelectedEventIds(new Set(autoSelectIds));
+    setSelectedEventIds(new Set(autoSelectIds));
 
-    } catch (error) {
-      console.error(error);
-      alert('エラーが発生しました: ' + error.message);
-    } finally {
-      setIsFetching(false);
-    }
-  };
+  } catch (error) {
+    console.error(error);
+    alert('エラー: ' + error.message);
+  } finally {
+    setIsFetching(false);
+  }
+};
 
   const toggleSelect = (id) => {
     const newSet = new Set(selectedEventIds);
@@ -731,3 +709,4 @@ export default function App() {
   if (!user) return <AuthScreen onLogin={handleLogin} />;
   return <Dashboard user={user} events={events} allData={allData} onUpdateStatus={handleUpdateStatus} onUpdateComment={handleUpdateComment} onLogout={handleLogout} onAddEvents={handleAddEvents} onTogglePublish={handleTogglePublish} />;
 }
+
