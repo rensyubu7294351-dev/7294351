@@ -37,15 +37,14 @@ import {
 } from 'lucide-react';
 
 // --- Firebase Initialization ---
-// ★ここは元のキーのまま変更していません
+// ★Firebaseキーはご自身の環境変数が読み込まれる設定のまま維持しています
 const firebaseConfig = {
-  apiKey: "AIzaSyDQ6nxN4Xv9WOFVArdGX7gg788iKPPThdM",
-  authDomain: "project-3922562979058963012.firebaseapp.com",
-  projectId: "project-3922562979058963012",
-  storageBucket: "project-3922562979058963012.firebasestorage.app",
-  messagingSenderId: "523228195819",
-  appId: "1:523228195819:web:1a6ac6b804f5592f2bc7ae",
-  measurementId: "G-37D8D0YP7B"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: "sample-293b1.firebaseapp.com",
+  projectId: "sample-293b1",
+  storageBucket: "sample-293b1.firebasestorage.app",
+  messagingSenderId: "814788555901",
+  appId: "1:814788555901:web:60dd655faa09e4fc39ed14"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -61,6 +60,7 @@ const FAMILIES = [
   "みぃファミリー", "ゆつきファミリー", "甘ドリファミリー"
 ];
 
+// ★★★ メンバー名簿 ★★★
 const MEMBER_LIST = [
   { family: "おせきファミリー", name: "おせき" }, { family: "おせきファミリー", name: "のん" },
   { family: "おせきファミリー", name: "ぴーじー" }, { family: "おせきファミリー", name: "れんれん" },
@@ -148,7 +148,8 @@ const STATUS_OPTIONS = {
 const TARGET_COLORS = {
   "1": { name: "ラベンダー", class: "bg-purple-100 text-purple-700" },
   "5": { name: "バナナ", class: "bg-yellow-100 text-yellow-700" },
-  "6": { name: "ミカン", class: "bg-orange-100 text-orange-700" }
+  "6": { name: "ミカン", class: "bg-orange-100 text-orange-700" },
+  "default": { name: "既定の色", class: "bg-gray-100 text-gray-500" } 
 };
 
 const ADMIN_PASSWORD = "yosakoi"; 
@@ -156,15 +157,18 @@ const ADMIN_PASSWORD = "yosakoi";
 // --- Helper Functions ---
 const getDayInfo = (dateString) => {
   if (!dateString) return { dayStr: '', colorClass: 'bg-gray-100 text-gray-600' };
+  
   const [y, m, d] = dateString.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   const dayIndex = date.getDay(); 
   const days = ['(日)', '(月)', '(火)', '(水)', '(木)', '(金)', '(土)'];
   const dayStr = days[dayIndex];
+
   let colorClass = 'bg-gray-100 text-gray-600'; 
   if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200';
   if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';
   if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';
+
   return { dayStr, colorClass };
 };
 
@@ -176,14 +180,17 @@ const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 const AuthScreen = ({ onLogin }) => {
   const [family, setFamily] = useState('');
   const [selectedName, setSelectedName] = useState('');
+
   const familyMembers = useMemo(() => {
     if (!family) return [];
     return MEMBER_LIST.filter(m => m.family === family).sort((a, b) => 0); 
   }, [family]);
+
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     if (family && selectedName) onLogin(family, selectedName);
   };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 safe-area-top safe-area-bottom">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm border border-indigo-50">
@@ -258,7 +265,6 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       // ★期間設定：今月の1日 〜 再来月の0日（＝来月の末日）
       const now = new Date();
       const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      // getMonth() + 2 の 0日目 = 来月の末日 (例: 2月なら 4月0日=3月31日)
       const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59);
 
       const timeMin = startOfThisMonth.toISOString();
@@ -275,12 +281,10 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       // ターゲット色ID (1:ラベンダー, 5:バナナ, 6:ミカン)
       const targetColorIds = ['1', '5', '6'];
       
-      // ★フィルター: 色IDが指定のもの（1,5,6）だけを厳密に通す
+      // ★修正: すべての予定を候補にする（キャンセル済み以外）
+      // ここで色によるフィルタリングを行わないことで、既定色の予定も表示されます
       const newCandidates = (data.items || [])
-        .filter(event => {
-           // colorIdが存在し、かつターゲットリストに含まれる場合のみ許可
-           return event.colorId && targetColorIds.includes(event.colorId);
-        })
+        .filter(event => event.status !== 'cancelled') 
         .map(event => {
           const startObj = new Date(event.start.dateTime || event.start.date);
           
@@ -305,13 +309,18 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
             date: dateStr,
             time: timeStr,
             location: event.location || '未定',
-            colorId: event.colorId
+            colorId: event.colorId || 'default' // 色がない場合はdefault
           };
         });
 
       setFetchedEvents(newCandidates);
-      const newIds = new Set(newCandidates.map(e => e.id));
-      setSelectedEventIds(newIds);
+      
+      // ★修正: 「バナナ・ミカン・ラベンダー」だけ自動でチェックを入れる
+      const autoSelectIds = newCandidates
+        .filter(e => e.colorId !== 'default' && targetColorIds.includes(e.colorId))
+        .map(e => e.id);
+        
+      setSelectedEventIds(new Set(autoSelectIds));
 
     } catch (error) {
       console.error(error);
@@ -406,6 +415,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
                 {fetchedEvents.map(event => {
                   const { dayStr, colorClass } = getDayInfo(event.date);
                   const isExisting = currentEvents.some(ce => ce.id === event.id);
+                  const colorConfig = TARGET_COLORS[event.colorId] || TARGET_COLORS['default'];
                   return (
                     <div key={event.id} className="p-4 hover:bg-gray-50 flex items-start gap-3 transition active:bg-gray-100" onClick={() => toggleSelect(event.id)}>
                       <div className={`mt-1 w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedEventIds.has(event.id) ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'}`}>
@@ -413,7 +423,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-wrap gap-2 items-center mb-1">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${TARGET_COLORS[event.colorId].class} font-bold`}>{TARGET_COLORS[event.colorId].name}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${colorConfig.class} font-bold`}>{colorConfig.name}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded ${colorClass} font-bold`}>{event.date} {dayStr}</span>
                           <span className="font-bold text-gray-800 text-sm">{event.time}</span>
                           {isExisting && <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded ml-2">更新</span>}
