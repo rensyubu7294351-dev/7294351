@@ -281,9 +281,9 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       // ターゲット色ID (1:ラベンダー, 5:バナナ, 6:ミカン)
       const targetColorIds = ['1', '5', '6'];
       
-// フィルター条件を「削除済み以外すべて」に変更し、既定色も通すようにします
-      const newCandidates = (data.items || [])
-        .filter(event => event.status !== 'cancelled') // ここで色を絞り込まない
+// ★修正: すべての予定を候補にする（キャンセル済み以外）
+      const newCandidates = items
+        .filter(event => event.status !== 'cancelled') 
         .map(event => {
           const startObj = new Date(event.start.dateTime || event.start.date);
           
@@ -311,23 +311,29 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
             colorId: event.colorId || 'default' // 色がない場合はdefault
           };
         });
-
       setFetchedEvents(newCandidates);
       
 // 初期状態でチェックを入れるのは「指定した3色」のみにする
+  //     const autoSelectIds = newCandidates
+  //       .filter(e => targetColorIds.includes(e.colorId))
+  //       .map(e => e.id);
+        
+  //     setSelectedEventIds(new Set(autoSelectIds));
+      
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert('カレンダーの読み込みに失敗しました: ' + error.message);
+  //   } finally {
+  //     setIsFetching(false);
+  //   }
+  // };
+
+  // ★修正: 「バナナ・ミカン・ラベンダー」だけ自動でチェックを入れる
       const autoSelectIds = newCandidates
-        .filter(e => targetColorIds.includes(e.colorId))
+        .filter(e => e.colorId !== 'default' && targetColorIds.includes(e.colorId))
         .map(e => e.id);
         
       setSelectedEventIds(new Set(autoSelectIds));
-      
-    } catch (error) {
-      console.error(error);
-      alert('カレンダーの読み込みに失敗しました: ' + error.message);
-    } finally {
-      setIsFetching(false);
-    }
-  };
 
   const toggleSelect = (id) => {
     const newSet = new Set(selectedEventIds);
