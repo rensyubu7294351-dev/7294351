@@ -33,7 +33,7 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Save // ★追加: Saveアイコンをインポート
+  Save
 } from 'lucide-react';
 
 // --- Firebase Initialization ---
@@ -401,13 +401,13 @@ const fetchCalendarEvents = async () => {
 
     const CALENDAR_ID = "rensyubu7294351@gmail.com";
     
-    // 期間設定：今月の1日 〜 再来月の末日
+    // 期間設定：今月の1日 〜 再来月の末日 (修正: getMonth() + 2 にして今月と来月の2ヶ月分にする)
     const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfTwoMonthsLater = new Date(now.getFullYear(), now.getMonth() + 3, 0, 23, 59, 59);
+    const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59);
 
     const timeMin = startOfThisMonth.toISOString();
-    const timeMax = endOfTwoMonthsLater.toISOString();
+    const timeMax = endOfNextMonth.toISOString();
 
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
 
@@ -423,11 +423,9 @@ const fetchCalendarEvents = async () => {
     const currentIds = new Set(currentEvents.map(e => e.id));
 
     const newCandidates = (data.items || [])
-      // 色IDが「undefined（既定の色）」の予定も許可し、
-      // 色IDがある場合は指定の色（1, 5, 6）のみ許可する。
+      // 修正: 色IDがある場合かつ、指定の色（1, 5, 6）のみ許可する。既定の色は除外。
       .filter(event => {
-         if (!event.colorId) return true;
-         return targetColorIds.includes(event.colorId);
+         return event.colorId && targetColorIds.includes(event.colorId);
       })
       .map(event => {
         const startObj = new Date(event.start.dateTime || event.start.date);
