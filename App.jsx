@@ -254,7 +254,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
     setIsFetching(true);
     try {
       const API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
-      const CALENDAR_ID = "yt8158886636@gmail.com";
+      const CALENDAR_ID = "rensyubu7294351@gmail.com";
       
       if (!API_KEY) {
           alert("APIキーが読み込めません。Vercelの環境変数を確認してください。");
@@ -1133,3 +1133,4 @@ export default function App() {
     />
   );
 }
+
