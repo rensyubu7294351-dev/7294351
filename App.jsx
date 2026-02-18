@@ -246,7 +246,7 @@ const STATUS_OPTIONS = {
   undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
 };
 
-const ADMIN_PASSWORD = "729yosa"; 
+const ADMIN_PASSWORD = "yosakoi"; 
 
 // --- Helper Functions ---
 const getDayInfo = (dateString) => {
@@ -273,7 +273,7 @@ const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
-  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6';
+  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6'; // Tailwind red-500 / blue-500
   return (
     <svg 
       viewBox="0 0 100 100" 
@@ -294,20 +294,20 @@ const DarumaIcon = ({ color, className, style }) => {
 const DarumaBackground = () => {
   const darumas = useMemo(() => {
     const items = [];
-    const count = 18;
+    const count = 18; // ダルマの数
 
     for (let i = 0; i < count; i++) {
       const isRed = Math.random() > 0.5;
-      const size = 30 + Math.random() * 50;
+      const size = 30 + Math.random() * 50; // 30px ~ 80px
       const animationType = ['anim-roll', 'anim-bounce', 'anim-sway'][Math.floor(Math.random() * 3)];
       
       let duration;
       if (animationType === 'anim-bounce') {
-        duration = 1.5 + Math.random() * 1.5;
+        duration = 1.5 + Math.random() * 1.5; // 1.5秒〜3.0秒 (ぴょんぴょん速く)
       } else if (animationType === 'anim-roll') {
-        duration = 7 + Math.random() * 5;
+        duration = 7 + Math.random() * 5;    // 5秒〜10秒 (転がる速度アップ)
       } else {
-        duration = 2 + Math.random() * 4;
+        duration = 2 + Math.random() * 4;    // 3秒〜7秒 (揺れも少し速く)
       }
 
       const delay = Math.random() * 5;
@@ -324,7 +324,7 @@ const DarumaBackground = () => {
           width: `${size}px`,
           height: `${size}px`,
           top: animationType === 'anim-roll' ? `${Math.random() * 80 + 10}%` : `${top}%`,
-          left: animationType === 'anim-roll' ? '-100px' : `${left}%`,
+          left: animationType === 'anim-roll' ? '-100px' : `${left}%`, // rollは画面外から
           animationDuration: `${duration}s`,
           animationDelay: `${delay}s`,
         }
@@ -391,7 +391,7 @@ const AuthScreen = ({ onLogin }) => {
             <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
               <AlertCircle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">ログインエラー</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">確認してください</h3>
             <p className="text-sm text-gray-500 mb-6 font-medium">
               {errorMessage}
             </p>
@@ -1115,17 +1115,14 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
               </div>
             </div>
 
-            <<div className="bg-white rounded-xl shadow-sm border border-gray-200 relative">
-              {/* 高さ制限(h-[75vh])を削除し、横スクロール(overflow-x-auto)のみ適用 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 relative">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left border-collapse">
                   <thead className="text-gray-500 font-medium border-b border-gray-200">
                     <tr>
-                      {/* 名前ヘッダー（左上固定）: z-40で最前面、top-[112px]でメニューバーの下に固定 */}
                       <th className="px-3 py-3 sticky left-0 top-[112px] bg-gray-50 z-40 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
                         名前 ({filteredUsers.length})
                       </th>
-                      {/* 日付ヘッダー（上固定）: z-30でデータより前面、top-[112px]で固定 */}
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
@@ -1140,26 +1137,26 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.map((u) => (
                       <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                        {/* 名前列（左固定）: z-20でデータより前面 */}
                         <td className="px-3 py-3 sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
                           <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
                           <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
                         </td>
-                        {/* データセル: z-0 */}
-                        {visibleEvents.map(event => {
+                      {visibleEvents.map(event => {
                           const status = u.responses?.[event.id] || 'undecided';
-                          const comment = u.comments?.[event.id];
+                          const comment = u.comments?.[event.id]; 
+                          
                           let symbol = '－';
                           let colorClass = 'text-gray-300';
+                          
                           if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/30'; }
                           if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/30'; }
                           if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-500 font-bold bg-yellow-50/30'; }
                           if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-500 font-bold bg-purple-50/30'; }
 
                           return (
-                            <td
-                              key={`${u.uid}-${event.id}`}
-                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`}
+                            <td 
+                              key={`${u.uid}-${event.id}`} 
+                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
                               title={comment || ''}
                               onClick={() => {
                                 if (comment) alert(`${u.name}さんのコメント：\n${comment}`);
@@ -1180,7 +1177,8 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                     ))}
                     {filteredUsers.length === 0 && (
                       <tr>
-                        <td colSpan={visibleEvents.length + 1} className="px-4 py-12 text-center text-gray-400 text-xs">                          表示するメンバーがいません
+                        <td colSpan={visibleEvents.length + 1} className="px-4 py-12 text-center text-gray-400 text-xs">
+                          表示するメンバーがいません
                         </td>
                       </tr>
                     )}
@@ -1402,6 +1400,3 @@ export default function App() {
     />
   );
 }
-
-
-
