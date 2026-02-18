@@ -1,0 +1,11 @@
+# 秘密の鍵が書かれたファイルをGitHubに上げない設定
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ビルド成果物や一時ファイル
+node_modules/
+dist/
+.DS_Store
