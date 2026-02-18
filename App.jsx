@@ -39,14 +39,15 @@ import {
 
 // --- Firebase Initialization ---
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: "sample-293b1.firebaseapp.com",
-  projectId: "sample-293b1",
-  storageBucket: "sample-293b1.firebasestorage.app",
-  messagingSenderId: "814788555901",
-  appId: "1:814788555901:web:60dd655faa09e4fc39ed14",
-  measurementId: "G-STEH5KKY28"
+  apiKey: "AIzaSyA13dA40m9vJ7gBy5yh6AaoX0ZA3eAdVzg",
+  authDomain: "iwaimedeta-7af67.firebaseapp.com",
+  projectId: "iwaimedeta-7af67",
+  storageBucket: "iwaimedeta-7af67.firebasestorage.app",
+  messagingSenderId: "589772336981",
+  appId: "1:589772336981:web:7b87414edc2018f32b49dc",
+  measurementId: "G-7Z7WLDS9FK"
 };
+
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -1423,3 +1424,4 @@ export default function App() {
     />
   );
 }
+
