@@ -246,7 +246,7 @@ const STATUS_OPTIONS = {
   undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
 };
 
-const ADMIN_PASSWORD = "yosakoi"; 
+const ADMIN_PASSWORD = "729yosa"; 
 
 // --- Helper Functions ---
 const getDayInfo = (dateString) => {
@@ -1400,4 +1400,5 @@ export default function App() {
     />
   );
 }
+
 
