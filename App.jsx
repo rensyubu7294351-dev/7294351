@@ -39,7 +39,6 @@ import {
 
 // --- Firebase Initialization ---
 const firebaseConfig = {
-//  apiKey: "AIzaSyA13dA40m9vJ7gBy5yh6AaoX0ZA3eAdVzg",
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "iwaimedeta-7af67.firebaseapp.com",
   projectId: "iwaimedeta-7af67",
@@ -48,7 +47,6 @@ const firebaseConfig = {
   appId: "1:589772336981:web:7b87414edc2018f32b49dc",
   measurementId: "G-7Z7WLDS9FK"
 };
-
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -273,56 +271,47 @@ const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // --- Components ---
 
-// ★追加: ダルマSVGコンポーネント
+// ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
-  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6'; // Tailwind red-500 / blue-500
+  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6';
   return (
     <svg 
       viewBox="0 0 100 100" 
       className={`daruma-icon ${className}`} 
       style={style}
     >
-      {/* 体 */}
       <path d="M50 95 C25 95 10 80 10 55 C10 30 25 5 50 5 C75 5 90 30 90 55 C90 80 75 95 50 95 Z" fill={mainColor} />
-      {/* 顔の白い部分 */}
       <circle cx="50" cy="45" r="30" fill="white" />
-      {/* 目 (左) */}
       <circle cx="38" cy="45" r="4" fill="black" />
-      {/* 目 (右) */}
       <circle cx="62" cy="45" r="4" fill="black" />
-      {/* 髭と口の装飾（簡易） */}
       <path d="M35 55 Q50 65 65 55" stroke="black" strokeWidth="2" fill="none" opacity="0.3" />
-      {/* 模様（お腹） */}
       <path d="M30 75 Q50 90 70 75" stroke="gold" strokeWidth="3" fill="none" />
     </svg>
   );
 };
 
-// ★追加: 背景アニメーションコンポーネント
+// 背景アニメーションコンポーネント
 const DarumaBackground = () => {
-  // ランダムなダルマを生成
   const darumas = useMemo(() => {
     const items = [];
-    const count = 18; // ダルマの数
+    const count = 18;
 
-for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       const isRed = Math.random() > 0.5;
-      const size = 30 + Math.random() * 50; // 30px ~ 80px
+      const size = 30 + Math.random() * 50;
       const animationType = ['anim-roll', 'anim-bounce', 'anim-sway'][Math.floor(Math.random() * 3)];
       
-      // ★速度調整ロジック: 種類によって時間を変える
       let duration;
       if (animationType === 'anim-bounce') {
-        duration = 1.5 + Math.random() * 1.5; // 1.5秒〜3.0秒 (ぴょんぴょん速く)
+        duration = 1.5 + Math.random() * 1.5;
       } else if (animationType === 'anim-roll') {
-        duration = 7 + Math.random() * 5;    // 5秒〜10秒 (転がる速度アップ)
+        duration = 7 + Math.random() * 5;
       } else {
-        duration = 2 + Math.random() * 4;    // 3秒〜7秒 (揺れも少し速く)
+        duration = 2 + Math.random() * 4;
       }
 
       const delay = Math.random() * 5;
       
-      // 初期位置（roll以外で使用）
       const top = Math.random() * 90; 
       const left = Math.random() * 90;
 
@@ -335,7 +324,7 @@ for (let i = 0; i < count; i++) {
           width: `${size}px`,
           height: `${size}px`,
           top: animationType === 'anim-roll' ? `${Math.random() * 80 + 10}%` : `${top}%`,
-          left: animationType === 'anim-roll' ? '-100px' : `${left}%`, // rollは画面外から
+          left: animationType === 'anim-roll' ? '-100px' : `${left}%`,
           animationDuration: `${duration}s`,
           animationDelay: `${delay}s`,
         }
@@ -359,16 +348,14 @@ for (let i = 0; i < count; i++) {
 };
 
 
-// 1. Auth Screen (List Selection Only)
+// 1. Auth Screen
 const AuthScreen = ({ onLogin }) => {
   const [family, setFamily] = useState('');
   const [selectedName, setSelectedName] = useState('');
 
-  // エラーポップアップ表示用の状態管理
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Filter members from constant list
   const familyMembers = useMemo(() => {
     if (!family) return [];
     
@@ -384,13 +371,11 @@ const AuthScreen = ({ onLogin }) => {
     }
   };
 
-  //  アラートを表示する代わりの関数
   const showAlert = (msg) => {
     setErrorMessage(msg);
     setShowError(true);
   };
 
-  //  アラートを閉じる関数
   const closeAlert = () => {
     setShowError(false);
   };
@@ -398,7 +383,6 @@ const AuthScreen = ({ onLogin }) => {
   return (
 <div className="min-h-screen flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden">
       
-      {/* ★背景アニメーション */}
       <DarumaBackground />
 
       {showError && (
@@ -421,7 +405,6 @@ const AuthScreen = ({ onLogin }) => {
         </div>
       )}
 
-      {/* ログインフォーム (z-indexで手前に表示) */}
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 w-full max-w-sm border border-white/50 relative z-10">
         <div className="text-center mb-6">
           <div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center">
@@ -534,9 +517,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
 
       const CALENDAR_ID = "rensyubu7294351@gmail.com";
       
-      // ★期間設定：今日 〜 翌月の末日
       const now = new Date();
-      // 時間を00:00:00に設定して今日以降の予定を取得
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59);
 
@@ -551,7 +532,6 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       const data = await response.json();
       console.log("★★Googleから届いた生データ★★:", data.items); 
 
-      // 色IDの定義 (1:ラベンダー, 5:バナナ, 6:ミカン)
       const targetColorIds = ['1', '5', '6'];
       
       const currentIds = new Set(currentEvents.map(e => e.id));
@@ -629,7 +609,6 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
     }
   };
 
-  // ★追加: 全選択・全解除の関数
   const handleSelectAll = () => {
     const allIds = new Set(fetchedEvents.map(e => e.id));
     setSelectedEventIds(allIds);
@@ -688,7 +667,6 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
         {fetchedEvents.length > 0 ? (
           <div className="space-y-4">
             <div className="border border-gray-200 rounded-xl overflow-hidden">
-              {/* ★ヘッダー部分を修正: 全選択・全解除ボタンの追加 */}
               <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 text-xs font-bold text-gray-500 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <span>候補一覧</span>
@@ -765,7 +743,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
           ) : (
             currentEvents.map(event => {
               const { dayStr, colorClass } = getDayInfo(event.date);
-              const isPublished = event.isPublished !== false; // Default true if undefined
+              const isPublished = event.isPublished !== false;
               return (
                 <div key={event.id} className="p-3 border border-gray-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between text-sm bg-gray-50/50 gap-2">
                   <div>
@@ -811,10 +789,8 @@ const StatusBadge = ({ status }) => {
 const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onLogout, onAddEvents, onTogglePublish }) => {
   const [activeTab, setActiveTab] = useState('input');
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('ALL');
-  // ★追加: 保存状態の管理ステート
   const [isSaving, setIsSaving] = useState(false);
 
-  // ★修正: ユーザー画面（入力・一覧）では「公開中」の予定だけを表示する
   const visibleEvents = useMemo(() => {
     return events.filter(e => e.isPublished !== false);
   }, [events]);
@@ -845,7 +821,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
 
 
   const getFamilyResponseRate = (familyName) => {
-    if (visibleEvents.length === 0) return 0; // Use visibleEvents
+    if (visibleEvents.length === 0) return 0;
     let targetMembers = MEMBER_LIST;
     if (familyName !== 'ALL') {
       targetMembers = MEMBER_LIST.filter(m => m.family === familyName);
@@ -877,7 +853,6 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
     return { ...counts, rate, total };
   };
 
-  // ★追加: ダミー保存用関数
   const handleDummySave = () => {
     setIsSaving(true);
     setTimeout(() => {
@@ -1028,7 +1003,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
               );
             })}
 
-            {/* ★追加: Dummy Floating Save Button */}
+            {/* Dummy Floating Save Button */}
             <div className="fixed bottom-6 right-6 z-40 safe-area-bottom">
               <button
                 onClick={handleDummySave}
@@ -1141,17 +1116,17 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
-              <div className="overflow-x-auto">
+              <div className="overflow-auto max-h-[70vh]">
                 <table className="w-full text-sm text-left border-collapse">
                   <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                     <tr>
-                      <th className="px-3 py-3 sticky left-0 bg-gray-50 z-10 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs">
+                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-50 z-30 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
                         名前 ({filteredUsers.length})
                       </th>
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
-                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100">
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-0 bg-gray-50 z-20 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
                             <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
                             <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
                           </th>
@@ -1425,5 +1400,3 @@ export default function App() {
     />
   );
 }
-
-
