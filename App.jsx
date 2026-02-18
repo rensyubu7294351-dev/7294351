@@ -39,7 +39,8 @@ import {
 
 // --- Firebase Initialization ---
 const firebaseConfig = {
-  apiKey: "AIzaSyA13dA40m9vJ7gBy5yh6AaoX0ZA3eAdVzg",
+//  apiKey: "AIzaSyA13dA40m9vJ7gBy5yh6AaoX0ZA3eAdVzg",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "iwaimedeta-7af67.firebaseapp.com",
   projectId: "iwaimedeta-7af67",
   storageBucket: "iwaimedeta-7af67.firebasestorage.app",
@@ -1424,4 +1425,5 @@ export default function App() {
     />
   );
 }
+
 
