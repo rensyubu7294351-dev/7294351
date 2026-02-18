@@ -391,7 +391,7 @@ const AuthScreen = ({ onLogin }) => {
             <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
               <AlertCircle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">確認してください</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">ログインエラー</h3>
             <p className="text-sm text-gray-500 mb-6 font-medium">
               {errorMessage}
             </p>
@@ -1400,3 +1400,4 @@ export default function App() {
     />
   );
 }
+
