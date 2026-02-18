@@ -1115,22 +1115,18 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 relative">
-             <div className="overflow-x-auto">
-
-               
-<table className="w-full text-sm text-left border-collapse">
-                  <thead className="text-gray-500 font-medium border-b border-gray-200">
-                    <tr className="bg-gray-50">
-                     
-                      <th className="px-3 py-3 sticky left-0 top-[112px] bg-gray-50 z-40 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+              <div className="overflow-auto max-h-[70vh]">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
+                    <tr>
+                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-50 z-30 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
                         名前 ({filteredUsers.length})
                       </th>
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
-                          
-                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-[112px] bg-gray-50 z-30 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-0 bg-gray-50 z-20 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
                             <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
                             <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
                           </th>
@@ -1141,7 +1137,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.map((u) => (
                       <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-3 sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
+                        <td className="px-3 py-3 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
                           <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
                           <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
                         </td>
@@ -1404,6 +1400,5 @@ export default function App() {
     />
   );
 }
-
 
 
