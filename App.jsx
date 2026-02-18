@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
+import './App.css';
 import { 
   getAuth, 
   signInAnonymously, 
@@ -14,7 +15,8 @@ import {
   getDoc,
   onSnapshot, 
   serverTimestamp,
-  updateDoc
+  updateDoc,
+  arrayUnion
 } from 'firebase/firestore';
 import { 
   Calendar, 
@@ -28,10 +30,11 @@ import {
   Lock,
   Plus,
   RefreshCw,
+  LogIn,
   AlertCircle,
   Eye,
   EyeOff,
-  Save
+  Save 
 } from 'lucide-react';
 
 // --- Firebase Initialization ---
@@ -41,7 +44,8 @@ const firebaseConfig = {
   projectId: "sample-293b1",
   storageBucket: "sample-293b1.firebasestorage.app",
   messagingSenderId: "814788555901",
-  appId: "1:814788555901:web:60dd655faa09e4fc39ed14"
+  appId: "1:814788555901:web:60dd655faa09e4fc39ed14",
+  measurementId: "G-STEH5KKY28"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -51,85 +55,187 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
 // --- Constants & Config ---
 const FAMILIES = [
-  "おせきファミリー", "けんすけファミリー", "スクラブファミリー", 
-  "みやぞんファミリー", "ちーたるファミリー", "ばなファミリー", 
-  "ぴーファミリー", "ぴょんファミリー", "まちゃぴファミリー", 
-  "みぃファミリー", "ゆつきファミリー", "甘ドリファミリー"
+  "おせきファミリー",
+  "けんすけファミリー",
+  "スクラブファミリー",
+  "みやぞんファミリー",
+  "ちーたるファミリー",
+  "ばなファミリー",
+  "ぴーファミリー",
+  "ぴょんファミリー",
+  "まちゃぴファミリー",
+  "みぃファミリー",
+  "ゆつきファミリー",
+  "甘ドリファミリー"
 ];
 
+// ★★★ メンバー名簿 ★★★
 const MEMBER_LIST = [
-  { family: "おせきファミリー", name: "おせき" }, { family: "おせきファミリー", name: "のん" },
-  { family: "おせきファミリー", name: "ぴーじー" }, { family: "おせきファミリー", name: "れんれん" },
-  { family: "おせきファミリー", name: "夜露死苦" }, { family: "おせきファミリー", name: "菅原瑛斗" },
-  { family: "おせきファミリー", name: "まつこ" }, { family: "おせきファミリー", name: "おとも" },
-  { family: "おせきファミリー", name: "おまゆ" }, { family: "おせきファミリー", name: "ねずみ先輩" },
-  { family: "おせきファミリー", name: "そそ" }, { family: "おせきファミリー", name: "あいか" },
-  { family: "けんすけファミリー", name: "健康なスケベ" }, { family: "けんすけファミリー", name: "れいす" },
-  { family: "けんすけファミリー", name: "フェンネル" }, { family: "けんすけファミリー", name: "ひとかひめ" },
-  { family: "けんすけファミリー", name: "やまと" }, { family: "けんすけファミリー", name: "いもかれ" },
-  { family: "けんすけファミリー", name: "そうり" }, { family: "けんすけファミリー", name: "おかわり" },
-  { family: "けんすけファミリー", name: "ゆきの" }, { family: "けんすけファミリー", name: "なな氏" },
-  { family: "けんすけファミリー", name: "こばなな" }, { family: "けんすけファミリー", name: "かに" },
-  { family: "スクラブファミリー", name: "スクラブ" }, { family: "スクラブファミリー", name: "わたけー" },
-  { family: "スクラブファミリー", name: "かなん" }, { family: "スクラブファミリー", name: "なむ" },
-  { family: "スクラブファミリー", name: "きくまる。" }, { family: "スクラブファミリー", name: "ほっさ" },
-  { family: "スクラブファミリー", name: "あぼ" }, { family: "スクラブファミリー", name: "ひメ" },
-  { family: "スクラブファミリー", name: "あらいだひなの" }, { family: "スクラブファミリー", name: "あさこ" },
-  { family: "スクラブファミリー", name: "ちゃあ" }, { family: "スクラブファミリー", name: "くり" },
-  { family: "みやぞんファミリー", name: "みやぞん" }, { family: "みやぞんファミリー", name: "ちょね" },
-  { family: "みやぞんファミリー", name: "キャラキャラメルト" }, { family: "みやぞんファミリー", name: "そうたろう" },
-  { family: "みやぞんファミリー", name: "りょう" }, { family: "みやぞんファミリー", name: "ボンバボン" },
-  { family: "みやぞんファミリー", name: "ぺそ" }, { family: "みやぞんファミリー", name: "ドリー！" },
-  { family: "みやぞんファミリー", name: "ジェニファー" }, { family: "みやぞんファミリー", name: "パトラッシュ" },
-  { family: "みやぞんファミリー", name: "ちゃんもり" }, { family: "みやぞんファミリー", name: "鈴木ひかり" },
-  { family: "ちーたるファミリー", name: "ちーたる" }, { family: "ちーたるファミリー", name: "八重" },
-  { family: "ちーたるファミリー", name: "りょく" }, { family: "ちーたるファミリー", name: "とーま" },
-  { family: "ちーたるファミリー", name: "めい" }, { family: "ちーたるファミリー", name: "どりー" },
-  { family: "ちーたるファミリー", name: "ヤスキ" }, { family: "ちーたるファミリー", name: "ましま" },
-  { family: "ちーたるファミリー", name: "じょにー" }, { family: "ちーたるファミリー", name: "まーや" },
-  { family: "ちーたるファミリー", name: "ぜよ" }, { family: "ちーたるファミリー", name: "せら" },
-  { family: "ばなファミリー", name: "ばな" }, { family: "ばなファミリー", name: "IC" },
-  { family: "ばなファミリー", name: "きょうこ" }, { family: "ばなファミリー", name: "こーしろー" },
-  { family: "ばなファミリー", name: "公太郎" }, { family: "ばなファミリー", name: "ティミー" },
-  { family: "ばなファミリー", name: "ななとう" }, { family: "ばなファミリー", name: "あんな" },
-  { family: "ばなファミリー", name: "ねこ" }, { family: "ばなファミリー", name: "ポメロン" },
-  { family: "ばなファミリー", name: "なつ" }, { family: "ばなファミリー", name: "シオン" },
-  { family: "ぴーファミリー", name: "ぴー" }, { family: "ぴーファミリー", name: "おっくん" },
-  { family: "ぴーファミリー", name: "そういち" }, { family: "ぴーファミリー", name: "あべりな" },
-  { family: "ぴーファミリー", name: "ながしー" }, { family: "ぴーファミリー", name: "しゅんすけ" },
-  { family: "ぴーファミリー", name: "もえきゅん" }, { family: "ぴーファミリー", name: "かんな" },
-  { family: "ぴーファミリー", name: "鈴木優花" }, { family: "ぴーファミリー", name: "とぅーりお" },
+  // おせきファミリー
+  { family: "おせきファミリー", name: "おせき" },
+  { family: "おせきファミリー", name: "のん" },
+  { family: "おせきファミリー", name: "ぴーじー" },
+  { family: "おせきファミリー", name: "れんれん" },
+  { family: "おせきファミリー", name: "夜露死苦" },
+  { family: "おせきファミリー", name: "菅原瑛斗" },
+  { family: "おせきファミリー", name: "まつこ" },
+  { family: "おせきファミリー", name: "おとも" },
+  { family: "おせきファミリー", name: "おまゆ" },
+  { family: "おせきファミリー", name: "ねずみ先輩" },
+  { family: "おせきファミリー", name: "そそ" },
+  { family: "おせきファミリー", name: "あいか" },
+
+  // けんすけファミリー
+  { family: "けんすけファミリー", name: "健康なスケベ" },
+  { family: "けんすけファミリー", name: "れいす" },
+  { family: "けんすけファミリー", name: "フェンネル" },
+  { family: "けんすけファミリー", name: "ひとかひめ" },
+  { family: "けんすけファミリー", name: "やまと" },
+  { family: "けんすけファミリー", name: "いもかれ" },
+  { family: "けんすけファミリー", name: "そうり" },
+  { family: "けんすけファミリー", name: "おかわり" },
+  { family: "けんすけファミリー", name: "ゆきの" },
+  { family: "けんすけファミリー", name: "なな氏" },
+  { family: "けんすけファミリー", name: "こばなな" },
+  { family: "けんすけファミリー", name: "かに" },
+
+  // スクラブファミリー
+  { family: "スクラブファミリー", name: "スクラブ" },
+  { family: "スクラブファミリー", name: "わたけー" },
+  { family: "スクラブファミリー", name: "かなん" },
+  { family: "スクラブファミリー", name: "なむ" },
+  { family: "スクラブファミリー", name: "きくまる。" },
+  { family: "スクラブファミリー", name: "ほっさ" },
+  { family: "スクラブファミリー", name: "あぼ" },
+  { family: "スクラブファミリー", name: "ひめ" },
+  { family: "スクラブファミリー", name: "あらいだひなの" },
+  { family: "スクラブファミリー", name: "あさこ" },
+  { family: "スクラブファミリー", name: "ちゃあ" },
+  { family: "スクラブファミリー", name: "くり" },
+
+  // みやぞんファミリー
+  { family: "みやぞんファミリー", name: "みやぞん" },
+  { family: "みやぞんファミリー", name: "ちょね" },
+  { family: "みやぞんファミリー", name: "キャラキャラメルト" },
+  { family: "みやぞんファミリー", name: "そうたろう" },
+  { family: "みやぞんファミリー", name: "りょう" },
+  { family: "みやぞんファミリー", name: "ボンバボン" },
+  { family: "みやぞんファミリー", name: "ぺそ" },
+  { family: "みやぞんファミリー", name: "ドリー！" },
+  { family: "みやぞんファミリー", name: "ジェニファー" },
+  { family: "みやぞんファミリー", name: "パトラッシュ" },
+  { family: "みやぞんファミリー", name: "ちゃんもり" },
+  { family: "みやぞんファミリー", name: "鈴木ひかり" },
+
+  // ちーたるファミリー
+  { family: "ちーたるファミリー", name: "ちーたる" },
+  { family: "ちーたるファミリー", name: "八重" },
+  { family: "ちーたるファミリー", name: "りょく" },
+  { family: "ちーたるファミリー", name: "とーま" },
+  { family: "ちーたるファミリー", name: "めい" },
+  { family: "ちーたるファミリー", name: "どりー" },
+  { family: "ちーたるファミリー", name: "ヤスキ" },
+  { family: "ちーたるファミリー", name: "ましま" },
+  { family: "ちーたるファミリー", name: "じょにー" },
+  { family: "ちーたるファミリー", name: "まーや" },
+  { family: "ちーたるファミリー", name: "ぜよ" },
+  { family: "ちーたるファミリー", name: "せら" },
+
+  // ばなファミリー
+  { family: "ばなファミリー", name: "ばな" },
+  { family: "ばなファミリー", name: "IC" },
+  { family: "ばなファミリー", name: "きょうこ" },
+  { family: "ばなファミリー", name: "こーしろー" },
+  { family: "ばなファミリー", name: "公太郎" },
+  { family: "ばなファミリー", name: "ティミー" },
+  { family: "ばなファミリー", name: "ななとう" },
+  { family: "ばなファミリー", name: "あんな" },
+  { family: "ばなファミリー", name: "ねこ" },
+  { family: "ばなファミリー", name: "ポメロン" },
+  { family: "ばなファミリー", name: "なつ" },
+  { family: "ばなファミリー", name: "シオン" },
+
+  // ぴーファミリー
+  { family: "ぴーファミリー", name: "ぴー" },
+  { family: "ぴーファミリー", name: "おっくん" },
+  { family: "ぴーファミリー", name: "そういち" },
+  { family: "ぴーファミリー", name: "あべりな" },
+  { family: "ぴーファミリー", name: "ながしー" },
+  { family: "ぴーファミリー", name: "しゅんすけ" },
+  { family: "ぴーファミリー", name: "もえきゅん" },
+  { family: "ぴーファミリー", name: "かんな" },
+  { family: "ぴーファミリー", name: "鈴木優花" },
+  { family: "ぴーファミリー", name: "とぅーりお" },
   { family: "ぴーファミリー", name: "かごめ" },
-  { family: "ぴょんファミリー", name: "ぴょん" }, { family: "ぴょんファミリー", name: "サツカワ　レオ" },
-  { family: "ぴょんファミリー", name: "さき" }, { family: "ぴょんファミリー", name: "カマンベール・ビオ" },
-  { family: "ぴょんファミリー", name: "橋本太郎" }, { family: "ぴょんファミリー", name: "ももな" },
-  { family: "ぴょんファミリー", name: "はまお" }, { family: "ぴょんファミリー", name: "まりあ" },
-  { family: "ぴょんファミリー", name: "さら" }, { family: "ぴょんファミリー", name: "ひかり" },
-  { family: "ぴょんファミリー", name: "なっち" }, { family: "ぴょんファミリー", name: "れん" },
-  { family: "まちゃぴファミリー", name: "まちゃぴ" }, { family: "まちゃぴファミリー", name: "ことー" },
-  { family: "まちゃぴファミリー", name: "たかゆか" }, { family: "まちゃぴファミリー", name: "超会議" },
-  { family: "まちゃぴファミリー", name: "こーじ" }, { family: "まちゃぴファミリー", name: "レイバックイナバウアー" },
-  { family: "まちゃぴファミリー", name: "ふうちゃん" }, { family: "まちゃぴファミリー", name: "りな" },
-  { family: "まちゃぴファミリー", name: "るな" }, { family: "まちゃぴファミリー", name: "わか" },
+
+  // ぴょんファミリー
+  { family: "ぴょんファミリー", name: "ぴょん" },
+  { family: "ぴょんファミリー", name: "サツカワ　レオ" },
+  { family: "ぴょんファミリー", name: "さき" },
+  { family: "ぴょんファミリー", name: "カマンベール・ビオ" },
+  { family: "ぴょんファミリー", name: "橋本太郎" },
+  { family: "ぴょんファミリー", name: "ももな" },
+  { family: "ぴょんファミリー", name: "はまお" },
+  { family: "ぴょんファミリー", name: "まりあ" },
+  { family: "ぴょんファミリー", name: "さら" },
+  { family: "ぴょんファミリー", name: "ひかり" },
+  { family: "ぴょんファミリー", name: "なっち" },
+  { family: "ぴょんファミリー", name: "れん" },
+
+  // まちゃぴファミリー
+  { family: "まちゃぴファミリー", name: "まちゃぴ" },
+  { family: "まちゃぴファミリー", name: "ことー" },
+  { family: "まちゃぴファミリー", name: "たかゆか" },
+  { family: "まちゃぴファミリー", name: "超会議" },
+  { family: "まちゃぴファミリー", name: "こーじ" },
+  { family: "まちゃぴファミリー", name: "レイバックイナバウアー" },
+  { family: "まちゃぴファミリー", name: "ふうちゃん" },
+  { family: "まちゃぴファミリー", name: "りな" },
+  { family: "まちゃぴファミリー", name: "るな" },
+  { family: "まちゃぴファミリー", name: "わか" },
   { family: "まちゃぴファミリー", name: "とみー" },
-  { family: "みぃファミリー", name: "みぃ" }, { family: "みぃファミリー", name: "ぺちか" },
-  { family: "みぃファミリー", name: "たいしょー" }, { family: "みぃファミリー", name: "いちを" },
-  { family: "みぃファミリー", name: "たかてぃん" }, { family: "みぃファミリー", name: "あすみん" },
-  { family: "みぃファミリー", name: "しまめい" }, { family: "みぃファミリー", name: "むらさき" },
-  { family: "みぃファミリー", name: "しまこ" }, { family: "みぃファミリー", name: "こんのほのか" },
-  { family: "みぃファミリー", name: "あずみ" }, { family: "みぃファミリー", name: "いもたる" },
-  { family: "ゆつきファミリー", name: "ゆつき" }, { family: "ゆつきファミリー", name: "ちゅーきち" },
-  { family: "ゆつきファミリー", name: "びっくりドンキー" }, { family: "ゆつきファミリー", name: "佐藤悠貴" },
-  { family: "ゆつきファミリー", name: "ゆきち" }, { family: "ゆつきファミリー", name: "バンクシー" },
-  { family: "ゆつきファミリー", name: "ちゃくみ" }, { family: "ゆつきファミリー", name: "ふなはら" },
-  { family: "ゆつきファミリー", name: "ほっしー" }, { family: "ゆつきファミリー", name: "ぽこ" },
-  { family: "ゆつきファミリー", name: "4649" }, { family: "ゆつきファミリー", name: "らび" },
-  { family: "甘ドリファミリー", name: "甘どり" }, { family: "甘ドリファミリー", name: "スナ" },
-  { family: "甘ドリファミリー", name: "少年" }, { family: "甘ドリファミリー", name: "みやたカ" },
-  { family: "甘ドリファミリー", name: "さくら" }, { family: "甘ドリファミリー", name: "アミーゴ" },
-  { family: "甘ドリファミリー", name: "マロ" }, { family: "甘ドリファミリー", name: "いなげひかりこ" },
-  { family: "甘ドリファミリー", name: "りーしゃん" }, { family: "甘ドリファミリー", name: "田中真菜実" },
-  { family: "甘ドリファミリー", name: "ゆり" }, { family: "甘ドリファミリー", name: "みどり" },
+
+  // みぃファミリー
+  { family: "みぃファミリー", name: "みぃ" },
+  { family: "みぃファミリー", name: "ぺちか" },
+  { family: "みぃファミリー", name: "たいしょー" },
+  { family: "みぃファミリー", name: "いちを" },
+  { family: "みぃファミリー", name: "たかてぃん" },
+  { family: "みぃファミリー", name: "あすみん" },
+  { family: "みぃファミリー", name: "しまめい" },
+  { family: "みぃファミリー", name: "むらさき" },
+  { family: "みぃファミリー", name: "しまこ" },
+  { family: "みぃファミリー", name: "こんのほのか" },
+  { family: "みぃファミリー", name: "あずみ" },
+  { family: "みぃファミリー", name: "いもたる" },
+
+  // ゆつきファミリー
+  { family: "ゆつきファミリー", name: "ゆつき" },
+  { family: "ゆつきファミリー", name: "ちゅーきち" },
+  { family: "ゆつきファミリー", name: "びっくりドンキー" },
+  { family: "ゆつきファミリー", name: "佐藤悠貴" },
+  { family: "ゆつきファミリー", name: "ゆきち" },
+  { family: "ゆつきファミリー", name: "バンクシー" },
+  { family: "ゆつきファミリー", name: "ちゃくみ" },
+  { family: "ゆつきファミリー", name: "ふなはら" },
+  { family: "ゆつきファミリー", name: "ほっしー" },
+  { family: "ゆつきファミリー", name: "ぽこ" },
+  { family: "ゆつきファミリー", name: "4649" },
+  { family: "ゆつきファミリー", name: "らび" },
+
+  // 甘ドリファミリー
+  { family: "甘ドリファミリー", name: "甘どり" },
+  { family: "甘ドリファミリー", name: "スナ" },
+  { family: "甘ドリファミリー", name: "少年" },
+  { family: "甘ドリファミリー", name: "みやたか" },
+  { family: "甘ドリファミリー", name: "さくら" },
+  { family: "甘ドリファミリー", name: "アミーゴ" },
+  { family: "甘ドリファミリー", name: "マロ" },
+  { family: "甘ドリファミリー", name: "いなげひかりこ" },
+  { family: "甘ドリファミリー", name: "りーしゃん" },
+  { family: "甘ドリファミリー", name: "田中真菜実" },
+  { family: "甘ドリファミリー", name: "ゆり" },
+  { family: "甘ドリファミリー", name: "みどり" },
 ];
 
 const STATUS_OPTIONS = {
@@ -140,18 +246,12 @@ const STATUS_OPTIONS = {
   undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
 };
 
-const TARGET_COLORS = {
-  "1": { name: "ラベンダー", class: "bg-purple-100 text-purple-700" },
-  "5": { name: "バナナ", class: "bg-yellow-100 text-yellow-700" },
-  "6": { name: "ミカン", class: "bg-orange-100 text-orange-700" },
-  "default": { name: "既定の色", class: "bg-gray-100 text-gray-500" } 
-};
-
 const ADMIN_PASSWORD = "yosakoi"; 
 
 // --- Helper Functions ---
 const getDayInfo = (dateString) => {
   if (!dateString) return { dayStr: '', colorClass: 'bg-gray-100 text-gray-600' };
+  
   const [y, m, d] = dateString.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   const dayIndex = date.getDay(); 
@@ -159,69 +259,241 @@ const getDayInfo = (dateString) => {
   const dayStr = days[dayIndex];
 
   let colorClass = 'bg-gray-100 text-gray-600'; 
-  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200';
-  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';
-  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';
+  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200'; // Sun: Green
+  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';   // Wed: Light Blue
+  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';   // Sat: Pink
 
   return { dayStr, colorClass };
 };
 
+// LocalStorage Key
 const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // --- Components ---
 
-// 1. Auth Screen
+// ★追加: ダルマSVGコンポーネント
+const DarumaIcon = ({ color, className, style }) => {
+  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6'; // Tailwind red-500 / blue-500
+  return (
+    <svg 
+      viewBox="0 0 100 100" 
+      className={`daruma-icon ${className}`} 
+      style={style}
+    >
+      {/* 体 */}
+      <path d="M50 95 C25 95 10 80 10 55 C10 30 25 5 50 5 C75 5 90 30 90 55 C90 80 75 95 50 95 Z" fill={mainColor} />
+      {/* 顔の白い部分 */}
+      <circle cx="50" cy="45" r="30" fill="white" />
+      {/* 目 (左) */}
+      <circle cx="38" cy="45" r="4" fill="black" />
+      {/* 目 (右) */}
+      <circle cx="62" cy="45" r="4" fill="black" />
+      {/* 髭と口の装飾（簡易） */}
+      <path d="M35 55 Q50 65 65 55" stroke="black" strokeWidth="2" fill="none" opacity="0.3" />
+      {/* 模様（お腹） */}
+      <path d="M30 75 Q50 90 70 75" stroke="gold" strokeWidth="3" fill="none" />
+    </svg>
+  );
+};
+
+// ★追加: 背景アニメーションコンポーネント
+const DarumaBackground = () => {
+  // ランダムなダルマを生成
+  const darumas = useMemo(() => {
+    const items = [];
+    const count = 18; // ダルマの数
+
+for (let i = 0; i < count; i++) {
+      const isRed = Math.random() > 0.5;
+      const size = 30 + Math.random() * 50; // 30px ~ 80px
+      const animationType = ['anim-roll', 'anim-bounce', 'anim-sway'][Math.floor(Math.random() * 3)];
+      
+      // ★速度調整ロジック: 種類によって時間を変える
+      let duration;
+      if (animationType === 'anim-bounce') {
+        duration = 1.5 + Math.random() * 1.5; // 1.5秒〜3.0秒 (ぴょんぴょん速く)
+      } else if (animationType === 'anim-roll') {
+        duration = 7 + Math.random() * 5;    // 5秒〜10秒 (転がる速度アップ)
+      } else {
+        duration = 2 + Math.random() * 4;    // 3秒〜7秒 (揺れも少し速く)
+      }
+
+      const delay = Math.random() * 5;
+      
+      // 初期位置（roll以外で使用）
+      const top = Math.random() * 90; 
+      const left = Math.random() * 90;
+
+      items.push({
+        id: i,
+        color: isRed ? 'red' : 'blue',
+        size,
+        animationType,
+        style: {
+          width: `${size}px`,
+          height: `${size}px`,
+          top: animationType === 'anim-roll' ? `${Math.random() * 80 + 10}%` : `${top}%`,
+          left: animationType === 'anim-roll' ? '-100px' : `${left}%`, // rollは画面外から
+          animationDuration: `${duration}s`,
+          animationDelay: `${delay}s`,
+        }
+      });
+    }
+    return items;
+  }, []);
+
+  return (
+    <div className="modern-gradient-bg">
+      {darumas.map((d) => (
+        <DarumaIcon 
+          key={d.id} 
+          color={d.color} 
+          className={d.animationType}
+          style={d.style}
+        />
+      ))}
+    </div>
+  );
+};
+
+
+// 1. Auth Screen (List Selection Only)
 const AuthScreen = ({ onLogin }) => {
   const [family, setFamily] = useState('');
   const [selectedName, setSelectedName] = useState('');
 
+  // エラーポップアップ表示用の状態管理
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Filter members from constant list
   const familyMembers = useMemo(() => {
     if (!family) return [];
-    return MEMBER_LIST.filter(m => m.family === family); 
+    
+    return MEMBER_LIST
+      .filter(m => m.family === family)
+      .sort((a, b) => 0); 
   }, [family]);
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    if (family && selectedName) onLogin(family, selectedName);
+    if (family && selectedName) {
+      onLogin(family, selectedName);
+    }
+  };
+
+  //  アラートを表示する代わりの関数
+  const showAlert = (msg) => {
+    setErrorMessage(msg);
+    setShowError(true);
+  };
+
+  //  アラートを閉じる関数
+  const closeAlert = () => {
+    setShowError(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 safe-area-top safe-area-bottom">
-      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm border border-indigo-50">
-        <div className="text-center mb-6">
-          <div className="bg-indigo-600 p-4 rounded-2xl w-20 h-20 mx-auto flex items-center justify-center mb-4 shadow-lg shadow-indigo-200">
-            <Users className="w-10 h-10 text-white" />
+<div className="min-h-screen flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden">
+      
+      {/* ★背景アニメーション */}
+      <DarumaBackground />
+
+      {showError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs text-center border border-gray-100 transform transition-all scale-100">
+            <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+              <AlertCircle className="w-6 h-6 text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">確認してください</h3>
+            <p className="text-sm text-gray-500 mb-6 font-medium">
+              {errorMessage}
+            </p>
+            <button 
+              onClick={closeAlert}
+              className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 active:scale-95 transition-all"
+            >
+              OK
+            </button>
           </div>
-          <h1 className="text-xl font-bold text-gray-800">よさこい出欠</h1>
-          <p className="text-xs text-gray-400 mt-1">メンバー選択ログイン</p>
         </div>
+      )}
+
+      {/* ログインフォーム (z-indexで手前に表示) */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 w-full max-w-sm border border-white/50 relative z-10">
+        <div className="text-center mb-6">
+          <div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center">
+            <img 
+              src="/images/七福アイコン.png" 
+              alt="チームロゴ" 
+              className="w-full h-full object-contain drop-shadow-xl" 
+            />
+          </div>
+          <h1 className="text-xl font-bold text-gray-800">練習出欠管理アプリ</h1>
+          <p className="text-xs text-gray-400 mt-1">ログイン画面</p>
+        </div>
+
         <form onSubmit={handleLoginSubmit} className="space-y-4">
           <div className="bg-blue-50 p-3 rounded-lg flex gap-2 items-start text-xs text-blue-700 mb-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <p>あなたの所属ファミリーと名前を選んで「ログイン」を押してください。</p>
+              <p>あなたの所属ファミリーと名前を選んで
+                「ログイン」を押してください。</p>
           </div>
+
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">所属ファミリー</label>
             <div className="relative">
-              <select value={family} onChange={(e) => { setFamily(e.target.value); setSelectedName(''); }} className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700">
+              <select
+                value={family}
+                onChange={(e) => {
+                  setFamily(e.target.value);
+                  setSelectedName('');
+                }}
+                className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700"
+              >
                 <option value="">▼ ファミリーを選択</option>
-                {FAMILIES.map((f) => (<option key={f} value={f}>{f}</option>))}
+                {FAMILIES.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
               </select>
               <ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
           </div>
+
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">名前を選択</label>
             <div className="relative">
-              {!family && (<div className="absolute inset-0 z-10" onClick={() => alert("先にファミリーを選択してください！")}/>)}
-              <select value={selectedName} onChange={(e) => setSelectedName(e.target.value)} disabled={!family} className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700 disabled:opacity-50 disabled:bg-gray-100">
+              
+              {!family && (
+                <div 
+                  className="absolute inset-0 z-10" 
+                  onClick={() => showAlert("先にファミリーを選択してください！")}
+                />
+              )}
+
+              <select
+                value={selectedName}
+                onChange={(e) => setSelectedName(e.target.value)}
+                disabled={!family} 
+                className="block w-full rounded-xl border-gray-200 border p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-gray-700 disabled:opacity-50 disabled:bg-gray-100"
+              >
                 <option value="">あなたの名前を選択</option>
-                {familyMembers.map((m) => (<option key={m.name} value={m.name}>{m.name}</option>))}
+                {familyMembers.map((m) => (
+                  <option key={m.name} value={m.name}>{m.name}</option>
+                ))}
               </select>
               <ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
+            {family && familyMembers.length === 0 && (
+               <p className="text-[10px] text-red-400 mt-1">※名簿データがありません。管理者に連絡してください。</p>
+            )}
           </div>
-          <button type="submit" disabled={!family || !selectedName} className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-lg shadow-indigo-200">
+
+          <button
+            type="submit"
+            disabled={!family || !selectedName}
+            className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-lg shadow-indigo-200"
+          >
             ログイン
           </button>
         </form>
@@ -240,66 +512,92 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) setIsAuthenticated(true);
-    else alert("パスワードが違います");
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+    } else {
+      alert("パスワードが違います");
+    }
   };
-const fetchCalendarEvents = async () => {
-  setIsFetching(true);
-  try {
-    const API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
-    const CALENDAR_ID = "rensyubu7294351@gmail.com";
-    
-    if (!API_KEY) throw new Error("APIキーがありません");
 
-    const now = new Date();
-    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfTwoMonthsLater = new Date(now.getFullYear(), now.getMonth() + 3, 0, 23, 59, 59);
+  const fetchCalendarEvents = async () => {
+    setIsFetching(true);
+    try {
+      const API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
+      
+      if (!API_KEY) {
+          alert("APIキーが読み込めません。Vercelの環境変数に「VITE_GOOGLE_CALENDAR_API_KEY」が正しく設定され、再デプロイされているか確認してください。");
+          setIsFetching(false);
+          return;
+      }
 
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${startOfThisMonth.toISOString()}&timeMax=${endOfTwoMonthsLater.toISOString()}&singleEvents=true&orderBy=startTime`;
+      const CALENDAR_ID = "rensyubu7294351@gmail.com";
+      
+      // ★期間設定：今日 〜 翌月の末日
+      const now = new Date();
+      // 時間を00:00:00に設定して今日以降の予定を取得
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59);
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("取得失敗");
-    
-    const data = await response.json();
-    console.log("★受信件数:", data.items?.length);
+      const timeMin = startOfToday.toISOString();
+      const timeMax = endOfNextMonth.toISOString();
 
-    // フロー1: 「すべて（既定も含む）」を表示させるため、ここでは filter をかけない
-    const newCandidates = (data.items || [])
-      .filter(event => event.status !== 'cancelled')
-      .map(event => {
-        const startVal = event.start.dateTime || event.start.date;
-        const startObj = new Date(startVal);
-        if (isNaN(startObj.getTime())) return null;
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
 
-        return {
-          id: event.id,
-          title: event.summary || 'タイトルなし',
-          date: `${startObj.getFullYear()}-${String(startObj.getMonth() + 1).padStart(2, '0')}-${String(startObj.getDate()).padStart(2, '0')}`,
-          time: event.start.dateTime ? `${String(startObj.getHours()).padStart(2, '0')}:${String(startObj.getMinutes()).padStart(2, '0')}` : '終日',
-          location: event.location || '未定',
-          colorId: event.colorId || 'default' // ★重要: colorIdを保持する
-        };
-      })
-      .filter(e => e !== null);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("取得失敗");
+      
+      const data = await response.json();
+      console.log("★★Googleから届いた生データ★★:", data.items); 
 
-    console.log("★加工後の全データ（ここを確認！）:", newCandidates);
-    setFetchedEvents(newCandidates);
-    
-    // フロー2: 自動チェックは「バナナ(5)・ミカン(6)・ラベンダー(1)」のみ
-    const targetColorIds = ['1', '5', '6'];
-    const autoSelectIds = newCandidates
-      .filter(e => targetColorIds.includes(e.colorId))
-      .map(e => e.id);
-        
-    setSelectedEventIds(new Set(autoSelectIds));
+      // 色IDの定義 (1:ラベンダー, 5:バナナ, 6:ミカン)
+      const targetColorIds = ['1', '5', '6'];
+      
+      const currentIds = new Set(currentEvents.map(e => e.id));
 
-  } catch (error) {
-    console.error(error);
-    alert('エラー: ' + error.message);
-  } finally {
-    setIsFetching(false);
-  }
-};
+      const newCandidates = (data.items || [])
+        .filter(event => {
+           if (!event.colorId) return true;
+           return targetColorIds.includes(event.colorId);
+        })
+        .map(event => {
+          const startObj = new Date(event.start.dateTime || event.start.date);
+          
+          const yyyy = startObj.getFullYear();
+          const mm = String(startObj.getMonth() + 1).padStart(2, '0');
+          const dd = String(startObj.getDate()).padStart(2, '0');
+          const dateStr = `${yyyy}-${mm}-${dd}`;
+          
+          let timeStr = '終日';
+          if (event.start.dateTime) {
+            const startH = String(startObj.getHours()).padStart(2, '0');
+            const startM = String(startObj.getMinutes()).padStart(2, '0');
+            const endObj = new Date(event.end.dateTime || event.end.date);
+            const endH = String(endObj.getHours()).padStart(2, '0');
+            const endM = String(endObj.getMinutes()).padStart(2, '0');
+            timeStr = `${startH}:${startM}-${endH}:${endM}`;
+          }
+
+          return {
+            id: event.id,
+            title: event.summary || 'タイトルなし',
+            date: dateStr,
+            time: timeStr,
+            location: event.location || '未定'
+          };
+        });
+
+      setFetchedEvents(newCandidates);
+      
+      const newIds = new Set(newCandidates.map(e => e.id));
+      setSelectedEventIds(newIds);
+
+    } catch (error) {
+      console.error(error);
+      alert('カレンダーの読み込みに失敗しました。APIキーなどを確認してください。');
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const toggleSelect = (id) => {
     const newSet = new Set(selectedEventIds);
@@ -317,7 +615,7 @@ const fetchCalendarEvents = async () => {
   };
 
   const handleDeleteAllEvents = async () => {
-    if (window.confirm("現在公開されているすべての予定を削除しますか？")) {
+    if (window.confirm("現在公開されているすべての予定を削除しますか？\n（この操作は元に戻せません）")) {
       try {
         const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
         await setDoc(eventsRef, { items: [] }); 
@@ -327,6 +625,16 @@ const fetchCalendarEvents = async () => {
         alert("削除に失敗しました。");
       }
     }
+  };
+
+  // ★追加: 全選択・全解除の関数
+  const handleSelectAll = () => {
+    const allIds = new Set(fetchedEvents.map(e => e.id));
+    setSelectedEventIds(allIds);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedEventIds(new Set());
   };
 
   if (!isAuthenticated) {
@@ -359,25 +667,50 @@ const fetchCalendarEvents = async () => {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-gray-100 pb-4">
           <div>
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2"><Calendar className="w-5 h-5 text-indigo-600" />カレンダー取込</h2>
+            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-indigo-600" />
+              カレンダー取込
+            </h2>
             <p className="text-xs text-gray-500 mt-1">Googleカレンダーから予定を取得します</p>
           </div>
-          <button onClick={fetchCalendarEvents} disabled={isFetching} className="w-full md:w-auto flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-3 rounded-xl hover:bg-indigo-100 font-bold text-sm transition disabled:opacity-50 active:scale-[0.98]">
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} /> {isFetching ? '取得中...' : '予定を取得'}
+          <button 
+            onClick={fetchCalendarEvents}
+            disabled={isFetching}
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-3 rounded-xl hover:bg-indigo-100 font-bold text-sm transition disabled:opacity-50 active:scale-[0.98]"
+          >
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            {isFetching ? '取得中...' : '予定を取得'}
           </button>
         </div>
 
         {fetchedEvents.length > 0 ? (
           <div className="space-y-4">
             <div className="border border-gray-200 rounded-xl overflow-hidden">
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 text-xs font-bold text-gray-500 flex justify-between">
-                <span>候補一覧</span><span>{selectedEventIds.size}件選択</span>
+              {/* ★ヘッダー部分を修正: 全選択・全解除ボタンの追加 */}
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 text-xs font-bold text-gray-500 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <span>候補一覧</span>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={handleSelectAll}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-indigo-50 text-indigo-600 transition shadow-sm"
+                    >
+                      全選択
+                    </button>
+                    <button 
+                      onClick={handleDeselectAll}
+                      className="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-gray-500 transition shadow-sm"
+                    >
+                      全解除
+                    </button>
+                  </div>
+                </div>
+                <span>{selectedEventIds.size}件選択</span>
               </div>
               <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
                 {fetchedEvents.map(event => {
                   const { dayStr, colorClass } = getDayInfo(event.date);
                   const isExisting = currentEvents.some(ce => ce.id === event.id);
-                  const colorConfig = TARGET_COLORS[event.colorId] || TARGET_COLORS['default'];
                   return (
                     <div key={event.id} className="p-4 hover:bg-gray-50 flex items-start gap-3 transition active:bg-gray-100" onClick={() => toggleSelect(event.id)}>
                       <div className={`mt-1 w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedEventIds.has(event.id) ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'}`}>
@@ -385,7 +718,6 @@ const fetchCalendarEvents = async () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-wrap gap-2 items-center mb-1">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${colorConfig.class} font-bold`}>{colorConfig.name}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded ${colorClass} font-bold`}>{event.date} {dayStr}</span>
                           <span className="font-bold text-gray-800 text-sm">{event.time}</span>
                           {isExisting && <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded ml-2">更新</span>}
@@ -398,8 +730,12 @@ const fetchCalendarEvents = async () => {
                 })}
               </div>
             </div>
-            <button onClick={handleImport} className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-              <Plus className="w-5 h-5" /> 選択した予定を追加/更新
+            <button 
+              onClick={handleImport}
+              className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              選択した予定を追加/更新
             </button>
           </div>
         ) : (
@@ -413,26 +749,44 @@ const fetchCalendarEvents = async () => {
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-gray-800 text-sm">公開中の日程</h3>
           {currentEvents.length > 0 && (
-            <button onClick={handleDeleteAllEvents} className="text-xs text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition active:scale-95">全件削除</button>
+            <button 
+              onClick={handleDeleteAllEvents}
+              className="text-xs text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition active:scale-95"
+            >
+              全件削除
+            </button>
           )}
         </div>
         <div className="space-y-2">
-          {currentEvents.length === 0 ? <p className="text-gray-400 text-sm">予定はまだありません</p> : currentEvents.map(event => {
+          {currentEvents.length === 0 ? (
+            <p className="text-gray-400 text-sm">予定はまだありません</p>
+          ) : (
+            currentEvents.map(event => {
               const { dayStr, colorClass } = getDayInfo(event.date);
-              const isPublished = event.isPublished !== false;
+              const isPublished = event.isPublished !== false; // Default true if undefined
               return (
                 <div key={event.id} className="p-3 border border-gray-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between text-sm bg-gray-50/50 gap-2">
                   <div>
-                    <span className={`inline-block mr-2 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold ${colorClass}`}>{event.date} {dayStr}</span>
+                    <span className={`inline-block mr-2 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold ${colorClass}`}>
+                      {event.date} {dayStr}
+                    </span>
                     <span className="font-bold text-gray-800 text-xs sm:text-sm">{event.title}</span>
                   </div>
-                  <button onClick={() => onTogglePublish(event.id)} className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full whitespace-nowrap self-start sm:self-center font-bold transition active:scale-95 border ${isPublished ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200' : 'bg-gray-200 text-gray-500 border-gray-300 hover:bg-gray-300'}`}>
-                    {isPublished ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />} {isPublished ? '公開中' : '非公開'}
+                  <button 
+                    onClick={() => onTogglePublish(event.id)}
+                    className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full whitespace-nowrap self-start sm:self-center font-bold transition active:scale-95 border ${
+                      isPublished 
+                        ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200' 
+                        : 'bg-gray-200 text-gray-500 border-gray-300 hover:bg-gray-300'
+                    }`}
+                  >
+                    {isPublished ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {isPublished ? '公開中' : '非公開'}
                   </button>
                 </div>
               );
             })
-          }
+          )}
         </div>
       </div>
     </div>
@@ -445,7 +799,8 @@ const StatusBadge = ({ status }) => {
   const Icon = config.icon;
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold border ${config.color} whitespace-nowrap`}>
-      <Icon className="w-3 h-3" /> {config.label}
+      <Icon className="w-3 h-3" />
+      {config.label}
     </span>
   );
 };
@@ -454,28 +809,45 @@ const StatusBadge = ({ status }) => {
 const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onLogout, onAddEvents, onTogglePublish }) => {
   const [activeTab, setActiveTab] = useState('input');
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('ALL');
+  // ★追加: 保存状態の管理ステート
   const [isSaving, setIsSaving] = useState(false);
 
-  const visibleEvents = useMemo(() => events.filter(e => e.isPublished !== false), [events]);
+  // ★修正: ユーザー画面（入力・一覧）では「公開中」の予定だけを表示する
+  const visibleEvents = useMemo(() => {
+    return events.filter(e => e.isPublished !== false);
+  }, [events]);
 
   const filteredUsers = useMemo(() => {
+    let users = Object.values(allData);
     const dataMap = allData;
     const mergedList = MEMBER_LIST.map(member => {
       const docId = `${member.family}_${member.name}`;
-      return { uid: docId, ...member, ...(dataMap[docId] || {}) };
+      return {
+        uid: docId,
+        ...member,
+        ...(dataMap[docId] || {}) 
+      };
     });
+
     let result = mergedList;
     if (selectedFamilyFilter === 'COMMENTED') {
-      result = result.filter(u => u.comments && Object.values(u.comments).some(c => c && c.trim() !== ''));
+      result = result.filter(u => {
+        if (!u.comments) return false;
+        return Object.values(u.comments).some(c => c && c.trim() !== '');
+      });
     } else if (selectedFamilyFilter !== 'ALL') {
       result = result.filter(u => u.family === selectedFamilyFilter);
     }
     return result;
   }, [allData, selectedFamilyFilter]);
 
+
   const getFamilyResponseRate = (familyName) => {
-    if (visibleEvents.length === 0) return 0;
-    let targetMembers = familyName === 'ALL' ? MEMBER_LIST : MEMBER_LIST.filter(m => m.family === familyName);
+    if (visibleEvents.length === 0) return 0; // Use visibleEvents
+    let targetMembers = MEMBER_LIST;
+    if (familyName !== 'ALL') {
+      targetMembers = MEMBER_LIST.filter(m => m.family === familyName);
+    }
     const totalExpected = targetMembers.length * visibleEvents.length;
     let respondedCount = 0;
     targetMembers.forEach(m => {
@@ -483,7 +855,8 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
       const userData = allData[docId];
       if (userData && userData.responses) {
         visibleEvents.forEach(e => {
-          if ((userData.responses[e.id] || 'undecided') !== 'undecided') respondedCount++;
+          const status = userData.responses[e.id] || 'undecided';
+          if (status !== 'undecided') respondedCount++;
         });
       }
     });
@@ -502,113 +875,347 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
     return { ...counts, rate, total };
   };
 
-  const handleDummySave = () => { setIsSaving(true); setTimeout(() => setIsSaving(false), 1000); };
+  // ★追加: ダミー保存用関数
+  const handleDummySave = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm safe-area-top">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+          
           <div className="flex items-center gap-2 shrink-0">
-            <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0 hidden sm:block"><Calendar className="w-4 h-4 text-white" /></div>
-            <h1 className="font-bold text-gray-800 text-sm sm:text-base md:text-lg truncate">よさこい出欠</h1>
+            <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0 hidden sm:block">
+              <Calendar className="w-4 h-4 text-white" />
+            </div>
+            <h1 className="font-bold text-gray-800 text-sm sm:text-base md:text-lg truncate">練習出欠管理アプリ</h1>
           </div>
+
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div className="text-right min-w-0">
               <div className="text-[10px] sm:text-xs text-gray-500 truncate">{user.family}</div>
               <div className="text-sm sm:text-base font-bold text-indigo-700 truncate">{user.name}</div>
             </div>
-            <button onClick={onLogout} className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition shrink-0">
-              <LogOut className="w-4 h-4" /><span className="hidden sm:inline text-xs font-bold">ログアウト</span>
+            
+            <button 
+              onClick={onLogout}
+              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition shrink-0"
+              title="ログアウト"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline text-xs font-bold">ログアウト</span>
             </button>
           </div>
         </div>
+        
         <div className="flex border-t border-gray-100 bg-white">
-          {['input', 'list', 'admin'].map(t => (
-            <button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-3 text-xs sm:text-sm font-bold text-center border-b-2 transition relative ${activeTab === t ? 'text-indigo-600 border-indigo-600 bg-indigo-50/30' : 'text-gray-400 hover:bg-gray-50'}`}>
-              {t === 'input' ? 'マイ出欠' : t === 'list' ? '全体一覧' : '管理者'}
-            </button>
-          ))}
+          <button 
+            onClick={() => setActiveTab('input')}
+            className={`flex-1 py-3 text-xs sm:text-sm font-bold text-center border-b-2 transition relative ${activeTab === 'input' ? 'text-indigo-600 border-indigo-600 bg-indigo-50/30' : 'text-gray-400 border-transparent hover:bg-gray-50'}`}
+          >
+            マイ出欠
+            {activeTab === 'input' && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-indigo-600 rounded-full mb-1 sm:hidden"></span>}
+          </button>
+          <button 
+            onClick={() => setActiveTab('list')}
+            className={`flex-1 py-3 text-xs sm:text-sm font-bold text-center border-b-2 transition relative ${activeTab === 'list' ? 'text-indigo-600 border-indigo-600 bg-indigo-50/30' : 'text-gray-400 border-transparent hover:bg-gray-50'}`}
+          >
+            全体一覧
+            {activeTab === 'list' && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-indigo-600 rounded-full mb-1 sm:hidden"></span>}
+          </button>
+          <button 
+            onClick={() => setActiveTab('admin')}
+            className={`flex-1 py-3 text-xs sm:text-sm font-bold text-center border-b-2 transition relative ${activeTab === 'admin' ? 'text-gray-800 border-gray-800 bg-gray-50' : 'text-gray-400 border-transparent hover:bg-gray-50'}`}
+          >
+            管理者
+            {activeTab === 'admin' && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-gray-800 rounded-full mb-1 sm:hidden"></span>}
+          </button>
         </div>
       </header>
 
+
       <main className="max-w-4xl mx-auto w-full p-4 flex-1 pb-20 safe-area-bottom">
+        
+        {/* --- VIEW 1: INPUT MODE (Uses visibleEvents) --- */}
         {activeTab === 'input' && (
           <div className="space-y-4">
-            {visibleEvents.length === 0 && <div className="text-center py-12 bg-white rounded-2xl text-gray-400 text-sm border border-dashed border-gray-200">登録されている練習予定はありません</div>}
+            {visibleEvents.length === 0 && (
+              <div className="text-center py-12 bg-white rounded-2xl text-gray-400 text-sm border border-dashed border-gray-200">
+                現在登録されている練習予定はありません
+              </div>
+            )}
+            
             {visibleEvents.map(event => {
               const myStatus = allData[user.uid]?.responses?.[event.id] || 'undecided';
               const { dayStr, colorClass } = getDayInfo(event.date);
+              
               return (
                 <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md">
                   <div className="p-5 border-b border-gray-100">
                     <div className="flex justify-between items-start mb-3">
-                      <span className={`${colorClass} text-xs font-bold px-2.5 py-1 rounded-md tracking-wide border`}>{event.date} {dayStr}</span>
+                      <span className={`${colorClass} text-xs font-bold px-2.5 py-1 rounded-md tracking-wide border`}>
+                        {event.date} {dayStr}
+                      </span>
                       <StatusBadge status={myStatus} />
                     </div>
                     <div className="space-y-1.5">
                       <h3 className="text-base font-bold text-gray-800 leading-tight">{event.title}</h3>
-                      <div className="text-sm font-bold text-gray-600 flex items-center gap-1.5"><span className="opacity-70 text-xs tracking-wider">時間:</span>{event.time}</div>
+                      <div className="text-sm font-bold text-gray-600 flex items-center gap-1.5">
+                        <span className="opacity-70 text-xs tracking-wider">時間:</span>
+                        {event.time}
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 divide-x divide-gray-100 bg-gray-50/50">
-                    {['present', 'late', 'absent', 'tentative'].map(s => (
-                      <button key={s} onClick={() => onUpdateStatus(event.id, s)} className={`py-4 flex flex-col items-center justify-center gap-1 text-[10px] sm:text-xs font-bold transition ${myStatus === s ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                        {s === 'present' ? '出席' : s === 'late' ? '遅刻/早退' : s === 'absent' ? '欠席' : '未確定'}
-                      </button>
-                    ))}
+                  
+                  <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50">
+                    <button 
+                      onClick={() => onUpdateStatus(event.id, 'present')}
+                      className={`py-4 flex flex-col items-center justify-center gap-1 text-xs sm:text-sm font-bold transition active:bg-indigo-700 active:text-white ${
+                        myStatus === 'present' ? 'bg-indigo-600 text-white shadow-inner' : 'text-gray-500 hover:bg-indigo-50'
+                      }`}
+                    >
+                      <CheckCircle2 className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 ${myStatus === 'present' ? 'opacity-100' : 'opacity-40'}`} />
+                      出席
+                    </button>
+                    <button 
+                      onClick={() => onUpdateStatus(event.id, 'late')}
+                      className={`py-4 flex flex-col items-center justify-center gap-1 text-xs sm:text-sm font-bold transition active:bg-yellow-600 active:text-white ${
+                        myStatus === 'late' ? 'bg-yellow-500 text-white shadow-inner' : 'text-gray-500 hover:bg-yellow-50'
+                      }`}
+                    >
+                      <HelpCircle className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 ${myStatus === 'late' ? 'opacity-100' : 'opacity-40'}`} />
+                      遅刻/早退
+                    </button>
+                    <button 
+                      onClick={() => onUpdateStatus(event.id, 'absent')}
+                      className={`py-4 flex flex-col items-center justify-center gap-1 text-xs sm:text-sm font-bold transition active:bg-red-600 active:text-white ${
+                        myStatus === 'absent' ? 'bg-red-500 text-white shadow-inner' : 'text-gray-500 hover:bg-red-50'
+                      }`}
+                    >
+                      <XCircle className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 ${myStatus === 'absent' ? 'opacity-100' : 'opacity-40'}`} />
+                      欠席
+                    </button>
+                    <button 
+                      onClick={() => onUpdateStatus(event.id, 'tentative')}
+                      className={`py-3 sm:py-4 flex flex-col items-center justify-center gap-1 text-xs sm:text-sm font-bold transition active:bg-purple-600 active:text-white ${
+                        myStatus === 'tentative' ? 'bg-purple-500 text-white shadow-inner' : 'text-gray-500 hover:bg-purple-50'
+                      }`}
+                    >
+                      <HelpCircle className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 ${myStatus === 'tentative' ? 'opacity-100' : 'opacity-40'}`} />
+                      未確定
+                    </button>
                   </div>
-                  <div className={`overflow-hidden transition-all ${['late', 'absent', 'tentative'].includes(myStatus) ? 'max-h-24 p-3' : 'max-h-0'}`}>
-                      <input type="text" placeholder="理由や時間などを入力" defaultValue={user.comments?.[event.id] || ''} onBlur={(e) => onUpdateComment(event.id, e.target.value)} className="w-full text-sm bg-white border border-gray-200 rounded-xl p-2.5 outline-none shadow-sm" />
+
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${['late', 'absent', 'tentative'].includes(myStatus) ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="p-3 bg-indigo-50/50 border-t border-gray-100">
+                      <input 
+                        type="text"
+                        placeholder="理由や時間などを入力（任意）"
+                        defaultValue={user.comments?.[event.id] || ''}
+                        onBlur={(e) => onUpdateComment(event.id, e.target.value)}
+                        className="w-full text-sm bg-white border border-gray-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                      />
+                    </div>
                   </div>
+
                 </div>
               );
             })}
+
+            {/* ★追加: Dummy Floating Save Button */}
             <div className="fixed bottom-6 right-6 z-40 safe-area-bottom">
-              <button onClick={handleDummySave} disabled={isSaving} className={`flex items-center gap-2 px-6 py-4 rounded-full font-bold shadow-lg transition-all ${isSaving ? 'bg-green-500 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
-                <Save className="w-5 h-5" /><span>{isSaving ? '保存完了' : '変更を保存'}</span>
+              <button
+                onClick={handleDummySave}
+                disabled={isSaving}
+                className={`flex items-center gap-2 px-6 py-4 rounded-full font-bold shadow-lg transition-all transform active:scale-95 ${
+                  isSaving 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                }`}
+              >
+                <Save className="w-5 h-5" />
+                <span>{isSaving ? '保存完了' : '変更を保存'}</span>
               </button>
             </div>
+
           </div>
         )}
 
+        {/* --- VIEW 2: LIST MODE (Uses visibleEvents) --- */}
         {activeTab === 'list' && (
           <div className="space-y-5">
-            <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 overflow-x-auto flex gap-2 no-scrollbar">
-                <button onClick={() => setSelectedFamilyFilter('ALL')} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${selectedFamilyFilter === 'ALL' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'}`}>全員 {getFamilyResponseRate('ALL')}%</button>
-                {FAMILIES.map(fam => (
-                  <button key={fam} onClick={() => setSelectedFamilyFilter(fam)} className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${selectedFamilyFilter === fam ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{fam.replace('ファミリー', '')} {getFamilyResponseRate(fam)}%</button>
-                ))}
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+                <Filter className="w-4 h-4 text-gray-400 shrink-0 ml-1" />
+
+                <button
+                  onClick={() => setSelectedFamilyFilter('COMMENTED')}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition shrink-0 flex items-center justify-center gap-1 ${
+                    selectedFamilyFilter === 'COMMENTED' 
+                      ? 'bg-purple-600 text-white shadow-md' 
+                      : 'bg-purple-50 text-purple-600 border border-purple-100'
+                  }`}
+                >
+                  💬 コメントあり
+                </button>
+                
+                <button
+                  onClick={() => setSelectedFamilyFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex flex-col items-center gap-1 ${
+                    selectedFamilyFilter === 'ALL' 
+                      ? 'bg-gray-800 text-white shadow-md' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <span>全員</span>
+                  <div className="flex items-center gap-1 w-full opacity-90">
+                    <div className={`w-10 h-1.5 rounded-full overflow-hidden ${selectedFamilyFilter === 'ALL' ? 'bg-gray-600' : 'bg-gray-300'}`}>
+                      <div className="h-full bg-green-400 transition-all" style={{ width: `${getFamilyResponseRate('ALL')}%` }} />
+                    </div>
+                    <span className="text-[8px] leading-none font-normal">{getFamilyResponseRate('ALL')}%</span>
+                  </div>
+                </button>
+
+                {FAMILIES.map(fam => {
+                  const rate = getFamilyResponseRate(fam);
+                  const isSelected = selectedFamilyFilter === fam;
+                  return (
+                    <button
+                      key={fam}
+                      onClick={() => setSelectedFamilyFilter(fam)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex flex-col items-center gap-1 ${
+                        isSelected 
+                          ? 'bg-indigo-600 text-white shadow-md' 
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      <span>{fam.replace('ファミリー', '')}</span>
+                      <div className="flex items-center gap-1 w-full opacity-90">
+                        <div className={`w-10 h-1.5 rounded-full overflow-hidden ${isSelected ? 'bg-indigo-400' : 'bg-gray-300'}`}>
+                          <div className="h-full bg-green-400 transition-all" style={{ width: `${rate}%` }} />
+                        </div>
+                        <span className="text-[8px] leading-none font-normal">{rate}%</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-                <table className="w-full text-xs text-left border-collapse">
-                  <thead className="bg-gray-50 text-gray-500 border-b border-gray-200">
+
+            <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
+              <div className="flex gap-3 w-max">
+                {visibleEvents.map(event => {
+                  const counts = getEventCounts(event.id);
+                  const { dayStr, colorClass } = getDayInfo(event.date);
+                  return (
+<div key={event.id} className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 w-44 shrink-0">
+                      <div className={`text-[10px] mb-1 font-bold inline-block px-1.5 py-0.5 rounded ${colorClass}`}>
+                        {event.date.slice(5)} {dayStr} {event.time.split('-')[0]}~
+                      </div>
+                      <div className="text-xs font-bold text-gray-800 truncate mb-1.5">{event.title}</div>
+                      
+                      <div className="mb-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100">
+                        <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                          <span>回答率</span>
+                          <span className="font-bold text-indigo-600">{counts.rate}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${counts.rate}%` }} />
+                        </div>
+                      </div>                      <div className="flex justify-between text-[10px] font-bold">
+                        <span className="text-green-600">○ {counts.present}</span>
+                        <span className="text-yellow-600">△ {counts.late}</span>
+                        <span className="text-red-500">× {counts.absent}</span>
+                        <span className="text-purple-500">？ {counts.tentative}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                     <tr>
-                      <th className="px-3 py-3 sticky left-0 bg-gray-50 z-10 w-24">名前</th>
-                      {visibleEvents.map(event => (<th key={event.id} className="px-1 py-2 min-w-[60px] text-center border-l border-gray-100">{event.date.slice(5)}</th>))}
+                      <th className="px-3 py-3 sticky left-0 bg-gray-50 z-10 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs">
+                        名前 ({filteredUsers.length})
+                      </th>
+                      {visibleEvents.map(event => {
+                        const { dayStr } = getDayInfo(event.date);
+                        return (
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100">
+                            <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
+                            <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredUsers.map(u => (
-                      <tr key={u.uid}>
-                        <td className="px-3 py-3 sticky left-0 bg-white z-10 border-r border-gray-100 font-bold truncate max-w-[80px]">{u.name}</td>
-                        {visibleEvents.map(event => {
+                    {filteredUsers.map((u) => (
+                      <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-3 py-3 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
+                          <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
+                          <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
+                        </td>
+                      {visibleEvents.map(event => {
                           const status = u.responses?.[event.id] || 'undecided';
+                          const comment = u.comments?.[event.id]; 
+                          
                           let symbol = '－';
-                          if (status === 'present') symbol = '○';
-                          if (status === 'absent') symbol = '×';
-                          if (status === 'late') symbol = '△';
-                          if (status === 'tentative') symbol = '？';
-                          return <td key={`${u.uid}-${event.id}`} className="px-1 py-2 text-center border-l border-gray-100">{symbol}</td>;
+                          let colorClass = 'text-gray-300';
+                          
+                          if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/30'; }
+                          if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/30'; }
+                          if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-500 font-bold bg-yellow-50/30'; }
+                          if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-500 font-bold bg-purple-50/30'; }
+
+                          return (
+                            <td 
+                              key={`${u.uid}-${event.id}`} 
+                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
+                              title={comment || ''}
+                              onClick={() => {
+                                if (comment) alert(`${u.name}さんのコメント：\n${comment}`);
+                              }}
+                            >
+                              <div className="flex flex-col items-center justify-center">
+                                <span>{symbol}</span>
+                                {comment && (
+                                  <span className="text-[8px] sm:text-[9px] text-gray-600 bg-white/80 px-1.5 mt-0.5 rounded border border-gray-200 truncate w-12 sm:w-16 shadow-sm">
+                                    {comment}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          );
                         })}
                       </tr>
                     ))}
+                    {filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan={visibleEvents.length + 1} className="px-4 py-12 text-center text-gray-400 text-xs">
+                          表示するメンバーがいません
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
+              </div>
             </div>
           </div>
         )}
 
-        {activeTab === 'admin' && <AdminPanel currentEvents={events} onAddEvents={onAddEvents} onTogglePublish={onTogglePublish} />}
+        {/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
+        {activeTab === 'admin' && (
+          <AdminPanel currentEvents={events} onAddEvents={onAddEvents} onTogglePublish={onTogglePublish} />
+        )}
       </main>
     </div>
   );
@@ -623,56 +1230,114 @@ export default function App() {
 
   useEffect(() => {
     const savedUserId = localStorage.getItem(LS_USER_ID_KEY);
+    
     const initApp = async () => {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-      else await signInAnonymously(auth);
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
     };
     initApp();
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
+        // 2. Fetch Events
         const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
         const unsubscribeEvents = onSnapshot(eventsRef, (docSnap) => {
           if (docSnap.exists()) {
-            const items = docSnap.data().items || [];
+            const rawItems = docSnap.data().items || [];
+            
+            
+            const items = rawItems.filter(item => 
+              item.date !== '2024-05-18' && 
+              !item.id.startsWith('evt-')
+            );
+            
             items.sort((a, b) => new Date(`${a.date} ${a.time.split('-')[0]}`) - new Date(`${b.date} ${b.time.split('-')[0]}`));
             setEvents(items);
-          } else { setDoc(eventsRef, { items: [] }); setEvents([]); }
+          } else {
+            setDoc(eventsRef, { items: [] });
+            setEvents([]);
+          }
         });
+
+        // 3. Fetch All Users Data
         const dataRef = collection(db, 'artifacts', appId, 'public', 'data', 'attendance');
         const unsubscribeData = onSnapshot(dataRef, (snapshot) => {
           const data = {};
-          snapshot.forEach(doc => { data[doc.id] = { uid: doc.id, ...doc.data() }; });
+          snapshot.forEach(doc => {
+            data[doc.id] = { uid: doc.id, ...doc.data() };
+          });
           setAllData(data);
-          if (!user && savedUserId && data[savedUserId]) setUser({ uid: savedUserId, ...data[savedUserId] });
+          
+          if (!user && savedUserId) {
+            if (data[savedUserId]) {
+              setUser({ uid: savedUserId, ...data[savedUserId] });
+            } 
+          }
           setLoading(false);
         });
-        return () => { unsubscribeEvents(); unsubscribeData(); };
-      } else setLoading(false);
+        
+        return () => {
+          unsubscribeEvents();
+          unsubscribeData();
+        };
+      } else {
+        setLoading(false);
+      }
     });
+
     return () => unsubscribeAuth();
-  }, [user]); 
+  }, []); 
 
   const handleLogin = async (family, name) => {
     const userId = `${family}_${name}`;
+    
     try {
-      if (!allData[userId]) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', userId), { name, family, responses: {}, updatedAt: serverTimestamp() });
+      let userData = allData[userId];
+      
+      if (!userData) {
+         userData = {
+          name,
+          family,
+          responses: {},
+          updatedAt: serverTimestamp(),
+        };
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', userId), userData);
+      }
+      
       localStorage.setItem(LS_USER_ID_KEY, userId);
-      setUser({ uid: userId, ...(allData[userId] || { name, family, responses: {} }) });
-    } catch (e) { console.error("Error:", e); alert("ログインに失敗しました"); }
+      setUser({ uid: userId, ...userData });
+
+    } catch (e) {
+      console.error("Error:", e);
+      alert("ログインに失敗しました");
+    }
   };
 
   const handleUpdateStatus = async (eventId, status) => {
     if (!user) return;
     const newResponses = { ...user.responses, [eventId]: status };
     setUser({ ...user, responses: newResponses }); 
-    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), { responses: newResponses, updatedAt: serverTimestamp() }); } catch (e) { console.error(e); }
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
+        responses: newResponses,
+        updatedAt: serverTimestamp()
+      });
+    } catch (e) { console.error(e); }
   };
 
   const handleUpdateComment = async (eventId, comment) => {
     if (!user) return;
     const newComments = { ...(user.comments || {}), [eventId]: comment };
     setUser({ ...user, comments: newComments }); 
-    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), { comments: newComments, updatedAt: serverTimestamp() }); } catch (e) { console.error(e); }
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
+        comments: newComments,
+        updatedAt: serverTimestamp()
+      });
+    } catch (e) { console.error(e); }
   };
 
   const handleTogglePublish = async (eventId) => {
@@ -681,32 +1346,80 @@ export default function App() {
       const docSnap = await getDoc(eventsRef);
       if (docSnap.exists()) {
         const items = docSnap.data().items || [];
-        const updatedItems = items.map(item => item.id === eventId ? { ...item, isPublished: item.isPublished !== false ? false : true } : item);
+        const updatedItems = items.map(item => {
+          if (item.id === eventId) {
+            const currentStatus = item.isPublished !== false; 
+            return { ...item, isPublished: !currentStatus };
+          }
+          return item;
+        });
         await updateDoc(eventsRef, { items: updatedItems });
       }
-    } catch (e) { console.error(e); alert("更新に失敗しました"); }
+    } catch (e) {
+      console.error(e);
+      alert("更新に失敗しました");
+    }
   };
 
   const handleAddEvents = async (newEvents) => {
     try {
       const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
+      
       const docSnap = await getDoc(eventsRef);
-      let currentItems = docSnap.exists() ? docSnap.data().items || [] : [];
+      let currentItems = [];
+      if (docSnap.exists()) {
+        currentItems = docSnap.data().items || [];
+      }
+
       let updatedItems = [...currentItems];
       newEvents.forEach(newEvent => {
         const index = updatedItems.findIndex(item => item.id === newEvent.id);
-        if (index > -1) updatedItems[index] = { ...newEvent, isPublished: updatedItems[index].isPublished !== false };
-        else updatedItems.push({ ...newEvent, isPublished: true });
+        if (index > -1) {
+          updatedItems[index] = { 
+            ...newEvent, 
+            isPublished: updatedItems[index].isPublished !== false 
+          };
+        } else {
+          updatedItems.push({ ...newEvent, isPublished: true });
+        }
       });
+
       await updateDoc(eventsRef, { items: updatedItems });
       alert(`${newEvents.length}件の予定を更新/追加しました`);
-    } catch (e) { console.error(e); alert("失敗しました"); }
+
+    } catch (e) {
+      console.error(e);
+      alert("失敗しました");
+    }
   };
 
-  const handleLogout = () => { localStorage.removeItem(LS_USER_ID_KEY); setUser(null); };
+  const handleLogout = () => {
+    localStorage.removeItem(LS_USER_ID_KEY);
+    setUser(null);
+  };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div></div>;
-  if (!user) return <AuthScreen onLogin={handleLogin} />;
-  return <Dashboard user={user} events={events} allData={allData} onUpdateStatus={handleUpdateStatus} onUpdateComment={handleUpdateComment} onLogout={handleLogout} onAddEvents={handleAddEvents} onTogglePublish={handleTogglePublish} />;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen onLogin={handleLogin} />;
+  }
+
+  return (
+    <Dashboard 
+      user={user} 
+      events={events} 
+      allData={allData} 
+      onUpdateStatus={handleUpdateStatus} 
+      onUpdateComment={handleUpdateComment}
+      onLogout={handleLogout}
+      onAddEvents={handleAddEvents}
+      onTogglePublish={handleTogglePublish}
+    />
+  );
 }
-
