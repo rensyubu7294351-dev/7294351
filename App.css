@@ -1,0 +1,66 @@
+
+.modern-gradient-bg {
+  background: radial-gradient(circle at 50% 10%, #ffffff 0%, #f3f4f6 40%, #e0e7ff 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* ダルマの共通スタイル */
+.daruma-icon {
+  position: absolute;
+  opacity: 0.6; /* 少し透けさせて邪魔にならないように */
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+/* アニメーション定義 */
+
+/* 1. 転がる (画面を横切りながら回転) */
+@keyframes rollAcross {
+  0% {
+    transform: translateX(-10vw) rotate(0deg);
+  }
+  100% {
+    transform: translateX(110vw) rotate(720deg);
+  }
+}
+
+/* 2. ぴょんぴょん跳ねる */
+@keyframes bounceJump {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-50px) scale(1.1);
+  }
+}
+
+/* 3. ゆらゆら揺れる */
+@keyframes sway {
+  0% {
+    transform: rotate(-10deg) translate(0, 0);
+  }
+  50% {
+    transform: rotate(10deg) translate(10px, -10px);
+  }
+  100% {
+    transform: rotate(-10deg) translate(0, 0);
+  }
+}
+
+/* アニメーション適用クラス */
+.anim-roll {
+  animation: rollAcross linear infinite;
+}
+
+.anim-bounce {
+  animation: bounceJump ease-in-out infinite;
+}
+
+.anim-sway {
+  animation: sway ease-in-out infinite;
+}
