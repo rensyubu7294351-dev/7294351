@@ -246,7 +246,7 @@ const STATUS_OPTIONS = {
   undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
 };
 
-const ADMIN_PASSWORD = "yosakoi"; 
+const ADMIN_PASSWORD = "729yosa"; 
 
 // --- Helper Functions ---
 const getDayInfo = (dateString) => {
@@ -273,7 +273,7 @@ const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
-  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6'; // Tailwind red-500 / blue-500
+  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6';
   return (
     <svg 
       viewBox="0 0 100 100" 
@@ -294,20 +294,20 @@ const DarumaIcon = ({ color, className, style }) => {
 const DarumaBackground = () => {
   const darumas = useMemo(() => {
     const items = [];
-    const count = 18; // ダルマの数
+    const count = 18;
 
     for (let i = 0; i < count; i++) {
       const isRed = Math.random() > 0.5;
-      const size = 30 + Math.random() * 50; // 30px ~ 80px
+      const size = 30 + Math.random() * 50;
       const animationType = ['anim-roll', 'anim-bounce', 'anim-sway'][Math.floor(Math.random() * 3)];
       
       let duration;
       if (animationType === 'anim-bounce') {
-        duration = 1.5 + Math.random() * 1.5; // 1.5秒〜3.0秒 (ぴょんぴょん速く)
+        duration = 1.5 + Math.random() * 1.5;
       } else if (animationType === 'anim-roll') {
-        duration = 7 + Math.random() * 5;    // 5秒〜10秒 (転がる速度アップ)
+        duration = 7 + Math.random() * 5;
       } else {
-        duration = 2 + Math.random() * 4;    // 3秒〜7秒 (揺れも少し速く)
+        duration = 2 + Math.random() * 4;
       }
 
       const delay = Math.random() * 5;
@@ -324,7 +324,7 @@ const DarumaBackground = () => {
           width: `${size}px`,
           height: `${size}px`,
           top: animationType === 'anim-roll' ? `${Math.random() * 80 + 10}%` : `${top}%`,
-          left: animationType === 'anim-roll' ? '-100px' : `${left}%`, // rollは画面外から
+          left: animationType === 'anim-roll' ? '-100px' : `${left}%`,
           animationDuration: `${duration}s`,
           animationDelay: `${delay}s`,
         }
@@ -391,7 +391,7 @@ const AuthScreen = ({ onLogin }) => {
             <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
               <AlertCircle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">確認してください</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">ログインエラー</h3>
             <p className="text-sm text-gray-500 mb-6 font-medium">
               {errorMessage}
             </p>
@@ -1115,18 +1115,18 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 relative">
-              <div className="overflow-x-auto">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+              <div className="overflow-auto max-h-[70vh]">
                 <table className="w-full text-sm text-left border-collapse">
-                  <thead className="text-gray-500 font-medium border-b border-gray-200">
+                  <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                     <tr>
-                      <th className="px-3 py-3 sticky left-0 top-[112px] bg-gray-50 z-40 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
+                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-50 z-30 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
                         名前 ({filteredUsers.length})
                       </th>
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
-                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-[112px] bg-gray-50 z-30 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-0 bg-gray-50 z-20 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
                             <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
                             <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
                           </th>
@@ -1137,7 +1137,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.map((u) => (
                       <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-3 sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
+                        <td className="px-3 py-3 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
                           <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
                           <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
                         </td>
@@ -1400,3 +1400,5 @@ export default function App() {
     />
   );
 }
+
+
