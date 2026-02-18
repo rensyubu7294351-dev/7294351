@@ -15,29 +15,25 @@ import {
   getDoc,
   onSnapshot, 
   serverTimestamp,
-  updateDoc,
-  arrayUnion
+  updateDoc
 } from 'firebase/firestore';
 import { 
   Calendar, 
   CheckCircle2, 
   XCircle, 
   HelpCircle, 
-  Users, 
   LogOut, 
   ChevronDown, 
   Filter,
   Lock,
   Plus,
   RefreshCw,
-  LogIn,
   AlertCircle,
   Eye,
   EyeOff,
   Save 
 } from 'lucide-react';
 
-// --- Firebase Initialization ---
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "iwaimedeta-7af67.firebaseapp.com",
@@ -53,7 +49,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-// --- Constants & Config ---
 const FAMILIES = [
   "おせきファミリー",
   "けんすけファミリー",
@@ -69,9 +64,7 @@ const FAMILIES = [
   "甘ドリファミリー"
 ];
 
-// ★★★ メンバー名簿 ★★★
 const MEMBER_LIST = [
-  // おせきファミリー
   { family: "おせきファミリー", name: "おせき" },
   { family: "おせきファミリー", name: "のん" },
   { family: "おせきファミリー", name: "ぴーじー" },
@@ -84,8 +77,6 @@ const MEMBER_LIST = [
   { family: "おせきファミリー", name: "ねずみ先輩" },
   { family: "おせきファミリー", name: "そそ" },
   { family: "おせきファミリー", name: "あいか" },
-
-  // けんすけファミリー
   { family: "けんすけファミリー", name: "健康なスケベ" },
   { family: "けんすけファミリー", name: "れいす" },
   { family: "けんすけファミリー", name: "フェンネル" },
@@ -98,8 +89,6 @@ const MEMBER_LIST = [
   { family: "けんすけファミリー", name: "なな氏" },
   { family: "けんすけファミリー", name: "こばなな" },
   { family: "けんすけファミリー", name: "かに" },
-
-  // スクラブファミリー
   { family: "スクラブファミリー", name: "スクラブ" },
   { family: "スクラブファミリー", name: "わたけー" },
   { family: "スクラブファミリー", name: "かなん" },
@@ -112,8 +101,6 @@ const MEMBER_LIST = [
   { family: "スクラブファミリー", name: "あさこ" },
   { family: "スクラブファミリー", name: "ちゃあ" },
   { family: "スクラブファミリー", name: "くり" },
-
-  // みやぞんファミリー
   { family: "みやぞんファミリー", name: "みやぞん" },
   { family: "みやぞんファミリー", name: "ちょね" },
   { family: "みやぞんファミリー", name: "キャラキャラメルト" },
@@ -126,8 +113,6 @@ const MEMBER_LIST = [
   { family: "みやぞんファミリー", name: "パトラッシュ" },
   { family: "みやぞんファミリー", name: "ちゃんもり" },
   { family: "みやぞんファミリー", name: "鈴木ひかり" },
-
-  // ちーたるファミリー
   { family: "ちーたるファミリー", name: "ちーたる" },
   { family: "ちーたるファミリー", name: "八重" },
   { family: "ちーたるファミリー", name: "りょく" },
@@ -140,8 +125,6 @@ const MEMBER_LIST = [
   { family: "ちーたるファミリー", name: "まーや" },
   { family: "ちーたるファミリー", name: "ぜよ" },
   { family: "ちーたるファミリー", name: "せら" },
-
-  // ばなファミリー
   { family: "ばなファミリー", name: "ばな" },
   { family: "ばなファミリー", name: "IC" },
   { family: "ばなファミリー", name: "きょうこ" },
@@ -154,8 +137,6 @@ const MEMBER_LIST = [
   { family: "ばなファミリー", name: "ポメロン" },
   { family: "ばなファミリー", name: "なつ" },
   { family: "ばなファミリー", name: "シオン" },
-
-  // ぴーファミリー
   { family: "ぴーファミリー", name: "ぴー" },
   { family: "ぴーファミリー", name: "おっくん" },
   { family: "ぴーファミリー", name: "そういち" },
@@ -167,8 +148,6 @@ const MEMBER_LIST = [
   { family: "ぴーファミリー", name: "鈴木優花" },
   { family: "ぴーファミリー", name: "とぅーりお" },
   { family: "ぴーファミリー", name: "かごめ" },
-
-  // ぴょんファミリー
   { family: "ぴょんファミリー", name: "ぴょん" },
   { family: "ぴょんファミリー", name: "サツカワ　レオ" },
   { family: "ぴょんファミリー", name: "さき" },
@@ -181,8 +160,6 @@ const MEMBER_LIST = [
   { family: "ぴょんファミリー", name: "ひかり" },
   { family: "ぴょんファミリー", name: "なっち" },
   { family: "ぴょんファミリー", name: "れん" },
-
-  // まちゃぴファミリー
   { family: "まちゃぴファミリー", name: "まちゃぴ" },
   { family: "まちゃぴファミリー", name: "ことー" },
   { family: "まちゃぴファミリー", name: "たかゆか" },
@@ -194,8 +171,6 @@ const MEMBER_LIST = [
   { family: "まちゃぴファミリー", name: "るな" },
   { family: "まちゃぴファミリー", name: "わか" },
   { family: "まちゃぴファミリー", name: "とみー" },
-
-  // みぃファミリー
   { family: "みぃファミリー", name: "みぃ" },
   { family: "みぃファミリー", name: "ぺちか" },
   { family: "みぃファミリー", name: "たいしょー" },
@@ -208,8 +183,6 @@ const MEMBER_LIST = [
   { family: "みぃファミリー", name: "こんのほのか" },
   { family: "みぃファミリー", name: "あずみ" },
   { family: "みぃファミリー", name: "いもたる" },
-
-  // ゆつきファミリー
   { family: "ゆつきファミリー", name: "ゆつき" },
   { family: "ゆつきファミリー", name: "ちゅーきち" },
   { family: "ゆつきファミリー", name: "びっくりドンキー" },
@@ -222,8 +195,6 @@ const MEMBER_LIST = [
   { family: "ゆつきファミリー", name: "ぽこ" },
   { family: "ゆつきファミリー", name: "4649" },
   { family: "ゆつきファミリー", name: "らび" },
-
-  // 甘ドリファミリー
   { family: "甘ドリファミリー", name: "甘どり" },
   { family: "甘ドリファミリー", name: "スナ" },
   { family: "甘ドリファミリー", name: "少年" },
@@ -246,9 +217,8 @@ const STATUS_OPTIONS = {
   undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
 };
 
-const ADMIN_PASSWORD = "729yosa"; 
+const ADMIN_PASSWORD = "yosakoi"; 
 
-// --- Helper Functions ---
 const getDayInfo = (dateString) => {
   if (!dateString) return { dayStr: '', colorClass: 'bg-gray-100 text-gray-600' };
   
@@ -259,19 +229,15 @@ const getDayInfo = (dateString) => {
   const dayStr = days[dayIndex];
 
   let colorClass = 'bg-gray-100 text-gray-600'; 
-  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200'; // Sun: Green
-  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';   // Wed: Light Blue
-  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';   // Sat: Pink
+  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200'; 
+  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';   
+  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';   
 
   return { dayStr, colorClass };
 };
 
-// LocalStorage Key
 const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
-// --- Components ---
-
-// ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
   const mainColor = color === 'red' ? '#ef4444' : '#3b82f6';
   return (
@@ -290,7 +256,6 @@ const DarumaIcon = ({ color, className, style }) => {
   );
 };
 
-// 背景アニメーションコンポーネント
 const DarumaBackground = () => {
   const darumas = useMemo(() => {
     const items = [];
@@ -347,8 +312,6 @@ const DarumaBackground = () => {
   );
 };
 
-
-// 1. Auth Screen
 const AuthScreen = ({ onLogin }) => {
   const [family, setFamily] = useState('');
   const [selectedName, setSelectedName] = useState('');
@@ -391,7 +354,7 @@ const AuthScreen = ({ onLogin }) => {
             <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
               <AlertCircle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">ログインエラー</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">確認してください</h3>
             <p className="text-sm text-gray-500 mb-6 font-medium">
               {errorMessage}
             </p>
@@ -487,7 +450,6 @@ const AuthScreen = ({ onLogin }) => {
   );
 };
 
-// 2. Admin Panel
 const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -773,7 +735,6 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
   );
 };
 
-// 3. Status Badge
 const StatusBadge = ({ status }) => {
   const config = STATUS_OPTIONS[status] || STATUS_OPTIONS.undecided;
   const Icon = config.icon;
@@ -785,7 +746,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// 4. Main Dashboard
 const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onLogout, onAddEvents, onTogglePublish }) => {
   const [activeTab, setActiveTab] = useState('input');
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('ALL');
@@ -917,7 +877,6 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
 
       <main className="max-w-4xl mx-auto w-full p-4 flex-1 pb-20 safe-area-bottom">
         
-        {/* --- VIEW 1: INPUT MODE (Uses visibleEvents) --- */}
         {activeTab === 'input' && (
           <div className="space-y-4">
             {visibleEvents.length === 0 && (
@@ -1003,7 +962,6 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
               );
             })}
 
-            {/* Dummy Floating Save Button */}
             <div className="fixed bottom-6 right-6 z-40 safe-area-bottom">
               <button
                 onClick={handleDummySave}
@@ -1022,7 +980,6 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
           </div>
         )}
 
-        {/* --- VIEW 2: LIST MODE (Uses visibleEvents) --- */}
         {activeTab === 'list' && (
           <div className="space-y-5">
             <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200">
@@ -1116,17 +1073,17 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
-              <div className="overflow-auto max-h-[70vh]">
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left border-collapse">
                   <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                     <tr>
-                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-50 z-30 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
+                      <th className="px-3 py-3 sticky left-0 top-[100px] bg-gray-50 z-30 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
                         名前 ({filteredUsers.length})
                       </th>
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
-                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-0 bg-gray-50 z-20 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-[100px] bg-gray-50 z-20 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
                             <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
                             <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
                           </th>
@@ -1189,7 +1146,6 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
           </div>
         )}
 
-        {/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
         {activeTab === 'admin' && (
           <AdminPanel currentEvents={events} onAddEvents={onAddEvents} onTogglePublish={onTogglePublish} />
         )}
@@ -1198,7 +1154,6 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
   );
 };
 
-// 5. Main App Container
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1219,7 +1174,6 @@ export default function App() {
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // 2. Fetch Events
         const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
         const unsubscribeEvents = onSnapshot(eventsRef, (docSnap) => {
           if (docSnap.exists()) {
@@ -1239,7 +1193,6 @@ export default function App() {
           }
         });
 
-        // 3. Fetch All Users Data
         const dataRef = collection(db, 'artifacts', appId, 'public', 'data', 'attendance');
         const unsubscribeData = onSnapshot(dataRef, (snapshot) => {
           const data = {};
@@ -1400,5 +1353,3 @@ export default function App() {
     />
   );
 }
-
-
