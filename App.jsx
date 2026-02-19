@@ -239,7 +239,7 @@ const MEMBER_LIST = [
 ];
 
 const STATUS_OPTIONS = {
-  present: { label: '出席', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle2 },
+  present: { label: '参加', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle2 },
   absent: { label: '欠席', color: 'bg-red-100 text-red-700 border-red-300', icon: XCircle },
   late: { label: '遅刻/早退', color: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: HelpCircle },
   tentative: { label: '未確定', color: 'bg-purple-100 text-purple-700 border-purple-300', icon: HelpCircle },
@@ -956,7 +956,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                       }`}
                     >
                       <CheckCircle2 className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 ${myStatus === 'present' ? 'opacity-100' : 'opacity-40'}`} />
-                      出席
+                      参加
                     </button>
                     <button 
                       onClick={() => onUpdateStatus(event.id, 'late')}
@@ -1400,5 +1400,6 @@ export default function App() {
     />
   );
 }
+
 
 
