@@ -1114,42 +1114,55 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                 })}
               </div>
             </div>
+
             
+
             <style>{`
               .custom-table-scroll {
                 -webkit-overflow-scrolling: touch;
               }
               .custom-table-scroll::-webkit-scrollbar {
-                width: 12px;
-                height: 12px;
+                width: 8px;
+                height: 8px;
               }
               .custom-table-scroll::-webkit-scrollbar-track {
-                background: #f8fafc;
-                border-radius: 8px;
-                border: 1px solid #e2e8f0;
+                background: #f1f5f9;
+                border-radius: 4px;
               }
               .custom-table-scroll::-webkit-scrollbar-thumb {
                 background-color: #cbd5e1;
-                border-radius: 8px;
-                border: 2px solid #f8fafc;
-              }
-              .custom-table-scroll::-webkit-scrollbar-thumb:hover {
-                background-color: #94a3b8;
+                border-radius: 4px;
               }
             `}</style>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative mt-4">
-              <div className="overflow-auto max-h-[70vh] custom-table-scroll">
-                <table className="w-full text-sm text-left border-separate border-spacing-0">
+            {/* バグの原因になる overflow-hidden を削除し、インラインスタイルで強制適用 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-4">
+              <div 
+                className="custom-table-scroll" 
+                style={{ overflow: 'auto', maxHeight: '70vh' }}
+              >
+                <table 
+                  className="text-sm text-left" 
+                  style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%' }}
+                >
                   <thead className="bg-gray-50 text-gray-500 font-medium">
                     <tr>
-                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-100 z-40 w-32 shadow-[inset_-1px_-1px_0_#e5e7eb] text-xs font-bold text-gray-600">
+                      {/* ▼ 左上角：縦にも横にも動かない (zIndex: 40) ▼ */}
+                      <th 
+                        className="px-3 py-3 bg-gray-100 text-xs font-bold text-gray-600 shadow-[inset_-1px_-1px_0_#e5e7eb]"
+                        style={{ position: 'sticky', top: 0, left: 0, zIndex: 40 }}
+                      >
                         名前 ({filteredUsers.length})
                       </th>
+                      {/* ▼ 見出し行（予定日）：縦にスクロールしても上に残る (zIndex: 30) ▼ */}
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
-                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal sticky top-0 bg-gray-50 z-30 shadow-[inset_0_-1px_0_#e5e7eb,inset_1px_0_0_#e5e7eb]">
+                          <th 
+                            key={event.id} 
+                            className="px-1 py-2 min-w-[70px] text-center font-normal bg-gray-50 shadow-[inset_0_-1px_0_#e5e7eb,inset_1px_0_0_#e5e7eb]"
+                            style={{ position: 'sticky', top: 0, zIndex: 30 }}
+                          >
                             <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
                             <div className="truncate w-[70px] mx-auto text-[10px] leading-tight font-bold text-gray-700">{event.title}</div>
                           </th>
@@ -1160,10 +1173,15 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   <tbody>
                     {filteredUsers.map((u) => (
                       <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-3 sticky left-0 bg-white z-20 shadow-[inset_-1px_-1px_0_#f3f4f6]">
+                        {/* ▼ 左端の列（名前）：横にスクロールしても左に残る (zIndex: 20) ▼ */}
+                        <td 
+                          className="px-3 py-3 bg-white shadow-[inset_-1px_-1px_0_#f3f4f6]"
+                          style={{ position: 'sticky', left: 0, zIndex: 20 }}
+                        >
                           <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
                           <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
                         </td>
+                        {/* 以下のデータ部分は通常のスクロール */}
                         {visibleEvents.map(event => {
                           const status = u.responses?.[event.id] || 'undecided';
                           const comment = u.comments?.[event.id]; 
@@ -1208,7 +1226,10 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   </tbody>
                 </table>
               </div>
-            </div> 
+            </div>
+
+
+            
           </div>
         )}
 
@@ -1423,6 +1444,7 @@ export default function App() {
     />
   );
 }
+
 
 
 
