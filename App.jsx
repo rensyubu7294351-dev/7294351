@@ -790,6 +790,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
   const [activeTab, setActiveTab] = useState('input');
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('ALL');
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedComment, setSelectedComment] = useState(null); // ← これを追加
 
   const visibleEvents = useMemo(() => {
     return events.filter(e => e.isPublished !== false);
@@ -1165,12 +1166,10 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.map((u) => (
                       <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                        {/* ▼ 左側の名前列（横スクロール時のみ固定） ▼ */}
                         <td className="px-3 py-3 sticky left-0 bg-white z-10 border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                           <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
                           <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
                         </td>
-                        {/* ▼ データ部分（固定なし・横に一緒にスクロールする） ▼ */}
                         {visibleEvents.map(event => {
                           const status = u.responses?.[event.id] || 'undecided';
                           const comment = u.comments?.[event.id]; 
@@ -1186,10 +1185,11 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                           return (
                             <td 
                               key={`${u.uid}-${event.id}`} 
-                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
+                              className={`px-1 py-2 text-center shadow-[inset_1px_0_0_#f3f4f6,inset_0_-1px_0_#f3f4f6] ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
                               title={comment || ''}
                               onClick={() => {
-                                if (comment) alert(`${u.name}さんのコメント：\n${comment}`);
+                                // alert() の代わりにカスタムモーダル用の状態をセット
+                                if (comment) setSelectedComment({ name: u.name, comment: comment });
                               }}
                             >
                               <div className="flex flex-col items-center justify-center">
@@ -1220,11 +1220,34 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
           </div>
         )}
 
-        {/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
+{/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
         {activeTab === 'admin' && (
           <AdminPanel currentEvents={events} onAddEvents={onAddEvents} onTogglePublish={onTogglePublish} />
         )}
       </main>
+
+
+      {selectedComment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs border border-gray-100 transform transition-all scale-100">
+            <h3 className="text-sm font-bold text-gray-500 mb-2">
+              {selectedComment.name} さんのコメント
+            </h3>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+              <p className="text-base text-gray-800 font-medium whitespace-pre-wrap">
+                {selectedComment.comment}
+              </p>
+            </div>
+            <button 
+              onClick={() => setSelectedComment(null)}
+              className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all shadow-md shadow-indigo-100"
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
@@ -1431,6 +1454,7 @@ export default function App() {
     />
   );
 }
+
 
 
 
