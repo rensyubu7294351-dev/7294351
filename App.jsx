@@ -1114,49 +1114,72 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                 })}
               </div>
             </div>
+            
+            <style>{`
+              .custom-table-scroll {
+                -webkit-overflow-scrolling: touch;
+              }
+              .custom-table-scroll::-webkit-scrollbar {
+                width: 12px;
+                height: 12px;
+              }
+              .custom-table-scroll::-webkit-scrollbar-track {
+                background: #f8fafc;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+              }
+              .custom-table-scroll::-webkit-scrollbar-thumb {
+                background-color: #cbd5e1;
+                border-radius: 8px;
+                border: 2px solid #f8fafc;
+              }
+              .custom-table-scroll::-webkit-scrollbar-thumb:hover {
+                background-color: #94a3b8;
+              }
+            `}</style>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
-              <div className="overflow-auto max-h-[70vh]">
-                <table className="w-full text-sm text-left border-collapse">
-                  <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative mt-4">
+              <div className="overflow-auto max-h-[70vh] custom-table-scroll">
+                <table className="w-full text-sm text-left border-separate border-spacing-0">
+                  <thead className="bg-gray-50 text-gray-500 font-medium">
                     <tr>
-                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-50 z-30 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
+                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-100 z-40 w-32 shadow-[inset_-1px_-1px_0_#e5e7eb] text-xs font-bold text-gray-600">
                         名前 ({filteredUsers.length})
                       </th>
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
-                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-0 bg-gray-50 z-20 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal sticky top-0 bg-gray-50 z-30 shadow-[inset_0_-1px_0_#e5e7eb,inset_1px_0_0_#e5e7eb]">
                             <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
-                            <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
+                            <div className="truncate w-[70px] mx-auto text-[10px] leading-tight font-bold text-gray-700">{event.title}</div>
                           </th>
                         );
                       })}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {filteredUsers.map((u) => (
                       <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-3 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
+                        <td className="px-3 py-3 sticky left-0 bg-white z-20 shadow-[inset_-1px_-1px_0_#f3f4f6]">
                           <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
                           <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
                         </td>
-                      {visibleEvents.map(event => {
+                        {visibleEvents.map(event => {
                           const status = u.responses?.[event.id] || 'undecided';
                           const comment = u.comments?.[event.id]; 
                           
                           let symbol = '－';
                           let colorClass = 'text-gray-300';
                           
-                          if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/30'; }
-                          if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/30'; }
-                          if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-500 font-bold bg-yellow-50/30'; }
-                          if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-500 font-bold bg-purple-50/30'; }
+                          if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/50'; }
+                          if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/50'; }
+                          if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-600 font-bold bg-yellow-50/50'; }
+                          if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-600 font-bold bg-purple-50/50'; }
 
                           return (
                             <td 
                               key={`${u.uid}-${event.id}`} 
-                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
+                              className={`px-1 py-2 text-center shadow-[inset_1px_0_0_#f3f4f6,inset_0_-1px_0_#f3f4f6] ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
                               title={comment || ''}
                               onClick={() => {
                                 if (comment) alert(`${u.name}さんのコメント：\n${comment}`);
@@ -1165,7 +1188,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                               <div className="flex flex-col items-center justify-center">
                                 <span>{symbol}</span>
                                 {comment && (
-                                  <span className="text-[8px] sm:text-[9px] text-gray-600 bg-white/80 px-1.5 mt-0.5 rounded border border-gray-200 truncate w-12 sm:w-16 shadow-sm">
+                                  <span className="text-[8px] sm:text-[9px] text-gray-600 bg-white/90 px-1.5 mt-0.5 rounded border border-gray-200 truncate w-12 sm:w-16 shadow-sm">
                                     {comment}
                                   </span>
                                 )}
@@ -1177,7 +1200,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                     ))}
                     {filteredUsers.length === 0 && (
                       <tr>
-                        <td colSpan={visibleEvents.length + 1} className="px-4 py-12 text-center text-gray-400 text-xs">
+                        <td colSpan={visibleEvents.length + 1} className="px-4 py-12 text-center text-gray-400 text-xs shadow-[inset_0_-1px_0_#f3f4f6]">
                           表示するメンバーがいません
                         </td>
                       </tr>
@@ -1185,7 +1208,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   </tbody>
                 </table>
               </div>
-            </div>
+            </div> 
           </div>
         )}
 
@@ -1400,6 +1423,7 @@ export default function App() {
     />
   );
 }
+
 
 
 
