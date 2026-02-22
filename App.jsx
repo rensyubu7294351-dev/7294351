@@ -1403,19 +1403,31 @@ export default function App() {
       updatedAt: serverTimestamp()
     };
 
-    if (status === 'present' && newComments[eventId]) {
+    if (status === 'present') {
       newComments[eventId] = '';
-      updates[`comments.${eventId}`] = ''; // データベース上も空文字で上書き
+      updates[`comments.${eventId}`] = ''; 
     }
-
 
     setUser({ ...user, responses: newResponses, comments: newComments }); 
 
     try {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), updates);
-    } catch (e) { 
-      console.error(e); 
-    }
+    } catch (e) { console.error(e); }
+  };
+
+  const handleUpdateComment = async (eventId, comment) => {
+    if (!user) return;
+
+    if (user.responses?.[eventId] === 'present') return;
+
+    const newComments = { ...(user.comments || {}), [eventId]: comment };
+    setUser({ ...user, comments: newComments }); 
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
+        [`comments.${eventId}`]: comment,
+        updatedAt: serverTimestamp()
+      });
+    } catch (e) { console.error(e); }
   };
 
   const handleUpdateComment = async (eventId, comment) => {
@@ -1502,20 +1514,29 @@ export default function App() {
 
   
 // 一括更新ロジック (Firestoreドット記法で最適化)
-  const handleBatchUpdate = async (eventIds, status, comment) => {
+const handleBatchUpdate = async (eventIds, status, comment) => {
     if (!user || eventIds.length === 0) return;
     const nr = { ...user.responses };
     const nc = { ...(user.comments || {}) };
     const updates = { updatedAt: serverTimestamp() };
+    
     eventIds.forEach(id => {
       nr[id] = status; 
-      updates[`responses.${id}`] = status; // 他人の回答を壊さないドット記法
-      if (comment) { 
+      updates[`responses.${id}`] = status; 
+      
+
+      if (status === 'present') {
+        nc[id] = '';
+        updates[`comments.${id}`] = '';
+      } 
+      else if (comment !== undefined && comment !== null) { 
         nc[id] = comment; 
         updates[`comments.${id}`] = comment; 
       }
     });
+    
     setUser({ ...user, responses: nr, comments: nc });
+    
     try { 
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), updates); 
     } catch (e) { alert("更新に失敗しました"); }
@@ -1535,4 +1556,5 @@ export default function App() {
     />
   );
 }
+
 
