@@ -274,8 +274,8 @@ const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 // ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
 const imageSrc = color === 'red' 
-    ? 'public/images/赤だるま.png'  // 赤だるまの画像パス
-    : 'public/images/青だるま.png'; // 青だるまの画像パス
+    ? '/images/赤だるま.png'  // 赤だるまの画像パス
+    : '/images/青だるま.png'; // 青だるまの画像パス
 
   return (
     <img 
@@ -1543,6 +1543,7 @@ const handleBatchUpdate = async (eventIds, status, comment) => {
     />
   );
 }
+
 
 
 
