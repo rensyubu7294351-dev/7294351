@@ -1415,20 +1415,7 @@ export default function App() {
     } catch (e) { console.error(e); }
   };
 
-  const handleUpdateComment = async (eventId, comment) => {
-    if (!user) return;
 
-    if (user.responses?.[eventId] === 'present') return;
-
-    const newComments = { ...(user.comments || {}), [eventId]: comment };
-    setUser({ ...user, comments: newComments }); 
-    try {
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
-        [`comments.${eventId}`]: comment,
-        updatedAt: serverTimestamp()
-      });
-    } catch (e) { console.error(e); }
-  };
 
   const handleUpdateComment = async (eventId, comment) => {
     if (!user) return;
@@ -1556,5 +1543,6 @@ const handleBatchUpdate = async (eventIds, status, comment) => {
     />
   );
 }
+
 
 
