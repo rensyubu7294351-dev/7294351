@@ -729,12 +729,12 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-gray-800 text-sm">公開中の日程</h3>
           {currentEvents.length > 0 && (
-            <button 
-              onClick={handleDeleteAllEvents}
-              className="text-xs text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition active:scale-95"
-            >
-              全件削除
-            </button>
+            // <button 
+            //   onClick={handleDeleteAllEvents}
+            //   className="text-xs text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition active:scale-95"
+            // >
+            //   全件削除
+            // </button>
           )}
         </div>
         <div className="space-y-2">
@@ -1454,6 +1454,7 @@ export default function App() {
     />
   );
 }
+
 
 
 
