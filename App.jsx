@@ -1395,13 +1395,27 @@ export default function App() {
   const handleUpdateStatus = async (eventId, status) => {
     if (!user) return;
     const newResponses = { ...user.responses, [eventId]: status };
-    setUser({ ...user, responses: newResponses }); 
+    const newComments = { ...(user.comments || {}) };
+    
+    // データベース更新用のデータ（安全なドット記法を使用）
+    const updates = {
+      [`responses.${eventId}`]: status,
+      updatedAt: serverTimestamp()
+    };
+
+    if (status === 'present' && newComments[eventId]) {
+      newComments[eventId] = '';
+      updates[`comments.${eventId}`] = ''; // データベース上も空文字で上書き
+    }
+
+
+    setUser({ ...user, responses: newResponses, comments: newComments }); 
+
     try {
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
-        responses: newResponses,
-        updatedAt: serverTimestamp()
-      });
-    } catch (e) { console.error(e); }
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), updates);
+    } catch (e) { 
+      console.error(e); 
+    }
   };
 
   const handleUpdateComment = async (eventId, comment) => {
@@ -1521,3 +1535,4 @@ export default function App() {
     />
   );
 }
+
