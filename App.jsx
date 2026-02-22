@@ -239,14 +239,14 @@ const MEMBER_LIST = [
 ];
 
 const STATUS_OPTIONS = {
-  present: { label: '参加', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle2 },
+  present: { label: '出席', color: 'bg-green-100 text-green-700 border-green-300', icon: CheckCircle2 },
   absent: { label: '欠席', color: 'bg-red-100 text-red-700 border-red-300', icon: XCircle },
   late: { label: '遅刻/早退', color: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: HelpCircle },
   tentative: { label: '未確定', color: 'bg-purple-100 text-purple-700 border-purple-300', icon: HelpCircle },
   undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
 };
 
-const ADMIN_PASSWORD = "729yosa"; 
+const ADMIN_PASSWORD = "yosakoi"; 
 
 // --- Helper Functions ---
 const getDayInfo = (dateString) => {
@@ -273,7 +273,7 @@ const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
-  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6';
+  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6'; // Tailwind red-500 / blue-500
   return (
     <svg 
       viewBox="0 0 100 100" 
@@ -294,20 +294,20 @@ const DarumaIcon = ({ color, className, style }) => {
 const DarumaBackground = () => {
   const darumas = useMemo(() => {
     const items = [];
-    const count = 18;
+    const count = 18; // ダルマの数
 
     for (let i = 0; i < count; i++) {
       const isRed = Math.random() > 0.5;
-      const size = 30 + Math.random() * 50;
+      const size = 30 + Math.random() * 50; // 30px ~ 80px
       const animationType = ['anim-roll', 'anim-bounce', 'anim-sway'][Math.floor(Math.random() * 3)];
       
       let duration;
       if (animationType === 'anim-bounce') {
-        duration = 1.5 + Math.random() * 1.5;
+        duration = 1.5 + Math.random() * 1.5; // 1.5秒〜3.0秒 (ぴょんぴょん速く)
       } else if (animationType === 'anim-roll') {
-        duration = 7 + Math.random() * 5;
+        duration = 7 + Math.random() * 5;    // 5秒〜10秒 (転がる速度アップ)
       } else {
-        duration = 2 + Math.random() * 4;
+        duration = 2 + Math.random() * 4;    // 3秒〜7秒 (揺れも少し速く)
       }
 
       const delay = Math.random() * 5;
@@ -324,7 +324,7 @@ const DarumaBackground = () => {
           width: `${size}px`,
           height: `${size}px`,
           top: animationType === 'anim-roll' ? `${Math.random() * 80 + 10}%` : `${top}%`,
-          left: animationType === 'anim-roll' ? '-100px' : `${left}%`,
+          left: animationType === 'anim-roll' ? '-100px' : `${left}%`, // rollは画面外から
           animationDuration: `${duration}s`,
           animationDelay: `${delay}s`,
         }
@@ -391,7 +391,7 @@ const AuthScreen = ({ onLogin }) => {
             <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
               <AlertCircle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">ログインエラー</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">確認してください</h3>
             <p className="text-sm text-gray-500 mb-6 font-medium">
               {errorMessage}
             </p>
@@ -728,7 +728,14 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-gray-800 text-sm">公開中の日程</h3>
-  
+          {currentEvents.length > 0 && (
+            <button 
+              onClick={handleDeleteAllEvents}
+              className="text-xs text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition active:scale-95"
+            >
+              全件削除
+            </button>
+          )}
         </div>
         <div className="space-y-2">
           {currentEvents.length === 0 ? (
@@ -779,74 +786,65 @@ const StatusBadge = ({ status }) => {
 };
 
 // 4. Main Dashboard
-const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onLogout, onAddEvents, onTogglePublish }) => {
+const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onBatchUpdate, onLogout, onAddEvents, onTogglePublish }) => {
   const [activeTab, setActiveTab] = useState('input');
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('ALL');
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedComment, setSelectedComment] = useState(null); // ← これを追加
+  const [selectedComment, setSelectedComment] = useState(null);
+
+  // 追加：一括操作用の新しい状態管理
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [selectedEventIds, setSelectedEventIds] = useState(new Set());
+  const [batchStatus, setBatchStatus] = useState('absent');
+  const [batchComment, setBatchComment] = useState('');
 
   const visibleEvents = useMemo(() => {
     return events.filter(e => e.isPublished !== false);
   }, [events]);
 
   const filteredUsers = useMemo(() => {
-    let users = Object.values(allData);
     const dataMap = allData;
-    const mergedList = MEMBER_LIST.map(member => {
-      const docId = `${member.family}_${member.name}`;
-      return {
-        uid: docId,
-        ...member,
-        ...(dataMap[docId] || {}) 
-      };
-    });
-
+    const mergedList = MEMBER_LIST.map(member => { const docId = `${member.family}_${member.name}`; return { uid: docId, ...member, ...(dataMap[docId] || {}) }; });
     let result = mergedList;
-    if (selectedFamilyFilter === 'COMMENTED') {
-      result = result.filter(u => {
-        if (!u.comments) return false;
-        return Object.values(u.comments).some(c => c && c.trim() !== '');
-      });
-    } else if (selectedFamilyFilter !== 'ALL') {
-      result = result.filter(u => u.family === selectedFamilyFilter);
-    }
+    if (selectedFamilyFilter === 'COMMENTED') result = result.filter(u => u.comments && Object.values(u.comments).some(c => c && c.trim() !== ''));
+    else if (selectedFamilyFilter !== 'ALL') result = result.filter(u => u.family === selectedFamilyFilter);
     return result;
   }, [allData, selectedFamilyFilter]);
 
-
   const getFamilyResponseRate = (familyName) => {
     if (visibleEvents.length === 0) return 0;
-    let targetMembers = MEMBER_LIST;
-    if (familyName !== 'ALL') {
-      targetMembers = MEMBER_LIST.filter(m => m.family === familyName);
-    }
-    const totalExpected = targetMembers.length * visibleEvents.length;
-    let respondedCount = 0;
-    targetMembers.forEach(m => {
-      const docId = `${m.family}_${m.name}`;
-      const userData = allData[docId];
-      if (userData && userData.responses) {
-        visibleEvents.forEach(e => {
-          const status = userData.responses[e.id] || 'undecided';
-          if (status !== 'undecided') respondedCount++;
-        });
-      }
-    });
-    return Math.round((respondedCount / totalExpected) * 100) || 0;
+    const targetMembers = familyName === 'ALL' ? MEMBER_LIST : MEMBER_LIST.filter(m => m.family === familyName);
+    let responded = 0;
+    targetMembers.forEach(m => { const d = allData[`${m.family}_${m.name}`]; if (d?.responses) visibleEvents.forEach(e => { if ((d.responses[e.id] || 'undecided') !== 'undecided') responded++; }); });
+    return Math.round((responded / (targetMembers.length * visibleEvents.length)) * 100) || 0;
   };
 
   const getEventCounts = (eventId) => {
     let counts = { present: 0, absent: 0, late: 0, tentative: 0, undecided: 0 };
-    filteredUsers.forEach(u => {
-      const status = u.responses?.[eventId] || 'undecided';
-      if (counts[status] !== undefined) counts[status]++;
-    });
-    const total = filteredUsers.length;
-    const responded = total - counts.undecided;
-    const rate = total > 0 ? Math.round((responded / total) * 100) : 0;
-    return { ...counts, rate, total };
+    filteredUsers.forEach(u => { const s = u.responses?.[eventId] || 'undecided'; counts[s]++; });
+    return { ...counts, rate: filteredUsers.length > 0 ? Math.round(((filteredUsers.length - counts.undecided) / filteredUsers.length) * 100) : 0 };
   };
 
+  // 追加：日付をタップした時の選択切り替えロジック
+  const toggleEventSelection = (id) => {
+    const newSet = new Set(selectedEventIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedEventIds(newSet);
+  };
+
+  // 追加：モーダル内の「反映する」ボタンを押した時の処理
+  const handleApplyBatch = async () => {
+    if (selectedEventIds.size === 0) { alert("日程を選択してください"); return; }
+    setIsSaving(true);
+    await onBatchUpdate(Array.from(selectedEventIds), batchStatus, batchComment);
+    setIsBatchModalOpen(false); 
+    setSelectedEventIds(new Set()); 
+    setBatchComment('');
+    setIsSaving(false);
+  };
+
+  // ★エラー原因の修正：消えていた関数を復活
   const handleDummySave = () => {
     setIsSaving(true);
     setTimeout(() => {
@@ -856,7 +854,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm safe-area-top">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm safe-area-top">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
           
           <div className="flex items-center gap-2 shrink-0">
@@ -950,7 +948,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                       }`}
                     >
                       <CheckCircle2 className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 ${myStatus === 'present' ? 'opacity-100' : 'opacity-40'}`} />
-                      参加
+                      出席
                     </button>
                     <button 
                       onClick={() => onUpdateStatus(event.id, 'late')}
@@ -981,15 +979,29 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                     </button>
                   </div>
 
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${['late', 'absent', 'tentative'].includes(myStatus) ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${['late', 'absent', 'tentative'].includes(myStatus) ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <div className="p-3 bg-indigo-50/50 border-t border-gray-100">
                       <input 
+                        id={`comment-input-${event.id}`} 
                         type="text"
-                        placeholder="理由や時間などを入力（任意）"
+                        placeholder="理由を入力"
                         defaultValue={user.comments?.[event.id] || ''}
                         onBlur={(e) => onUpdateComment(event.id, e.target.value)}
                         className="w-full text-sm bg-white border border-gray-200 rounded-xl p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
                       />
+                      <button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          const val = document.getElementById(`comment-input-${event.id}`)?.value || ''; 
+                          setBatchStatus(myStatus);   
+                          setBatchComment(val);       
+                          setIsBatchModalOpen(true);  
+                          setSelectedEventIds(new Set([event.id])); 
+                        }} 
+                        className="mt-2 w-full py-2 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg border border-indigo-100 flex items-center justify-center gap-1 hover:bg-indigo-100 transition shadow-sm active:scale-95"
+                      >
+                        <Plus className="w-3 h-3" /> この内容を他の日にも一括反映する
+                      </button>
                     </div>
                   </div>
 
@@ -1013,6 +1025,80 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
               </button>
             </div>
 
+          </div>
+        )}
+
+        
+        {isBatchModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
+              
+              <div className="p-6 bg-indigo-900 text-white">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold">反映する日程を選択</h3>
+                    <p className="text-xs text-indigo-200 mt-1">選んだすべての日程にコメントの内容を上書きします</p>
+                  </div>
+                  <button onClick={() => setIsBatchModalOpen(false)}><XCircle className="w-6 h-6" /></button>
+                </div>
+                <div className="flex gap-2">
+                  <div className="bg-white/10 px-3 py-1 rounded-lg text-xs border border-white/20">状態: {STATUS_OPTIONS[batchStatus]?.label}</div>
+                  <div className="bg-white/10 px-3 py-1 rounded-lg text-xs border border-white/20 truncate flex-1">理由: {batchComment || '(なし)'}</div>
+                </div>
+              </div>
+
+             
+              <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                <div className="grid grid-cols-3 gap-3">
+                  {visibleEvents.map(event => {
+                    const isSelected = selectedEventIds.has(event.id);
+                    const { dayStr } = getDayInfo(event.date);
+                    return (
+                      <button 
+                        key={event.id}
+                        onClick={() => toggleEventSelection(event.id)}
+                        className={`relative p-3 rounded-2xl border-2 transition-all flex flex-col items-center aspect-square justify-center ${
+                          isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-200 text-gray-500'
+                        }`}
+                      >
+
+                        <div className="flex items-center gap-1 mb-1.5">
+                          <span className="text-xs sm:text-sm font-bold">{event.date.slice(5).replace('-', '/')}</span>
+                          <span className="text-[10px] font-bold">{dayStr}</span>
+                        </div>
+                        
+                        <span className={`text-[8px] sm:text-[9px] mb-1.5 px-1 py-0.5 rounded w-full text-center truncate ${
+                          isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {event.time}
+                        </span>
+                        
+                        <span 
+                          className="text-[9px] sm:text-[10px] font-bold text-center leading-tight w-full"
+                          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                        >
+                          {event.title}
+                        </span>
+                        
+                        {isSelected && (
+                          <div className="absolute -top-2 -right-2 bg-white text-indigo-600 rounded-full border-2 border-indigo-600 shadow-sm">
+                            <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+             
+              <div className="p-6 bg-white border-t grid grid-cols-2 gap-3">
+                <button onClick={() => setIsBatchModalOpen(false)} className="py-3 rounded-xl font-bold bg-gray-100 text-gray-500">キャンセル</button>
+                <button onClick={handleApplyBatch} disabled={selectedEventIds.size === 0 || isSaving} className="py-3 rounded-xl font-bold bg-indigo-600 text-white disabled:opacity-50">
+                  {isSaving ? '保存中...' : `${selectedEventIds.size}件を更新`}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1109,48 +1195,20 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
               </div>
             </div>
 
-            
-
-
-{/* 横スクロール用のカスタムCSS（縦のスクロールバーはスマホ標準を使用） */}
-            <style>{`
-              .custom-x-scroll {
-                -webkit-overflow-scrolling: touch;
-                overflow-x: auto;
-                /* 縦は制限せず、ページ全体のスクロールに任せる */
-                overflow-y: visible; 
-              }
-              /* 横スクロールバーの太さ調整 */
-              .custom-x-scroll::-webkit-scrollbar {
-                height: 8px; 
-              }
-              .custom-x-scroll::-webkit-scrollbar-track {
-                background: #f1f5f9;
-                border-radius: 4px;
-              }
-              .custom-x-scroll::-webkit-scrollbar-thumb {
-                background-color: #cbd5e1;
-                border-radius: 4px;
-              }
-            `}</style>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-4 overflow-hidden">
-              <div className="custom-x-scroll">
-                {/* min-w-max で中身が画面より広い場合に横スクロールを発生させる */}
-                <table className="w-full text-sm text-left border-collapse min-w-max">
-                  <thead className="bg-gray-50 text-gray-500 font-medium">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative flex flex-col h-[75vh]">
+              <div className="overflow-auto flex-1 overscroll-none">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                     <tr>
-                      {/* ▼ 左側の名前列の見出し（横スクロール時のみ固定） ▼ */}
-                      <th className="px-3 py-3 sticky left-0 bg-gray-100 z-20 w-32 border-b border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-50 z-40 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
                         名前 ({filteredUsers.length})
                       </th>
-                      {/* ▼ 日付（固定なし・横に一緒にスクロールする） ▼ */}
                       {visibleEvents.map(event => {
                         const { dayStr } = getDayInfo(event.date);
                         return (
-                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-b border-gray-200 bg-gray-50">
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-0 bg-gray-50 z-30 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
                             <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
-                            <div className="truncate w-[70px] mx-auto text-[10px] leading-tight font-bold text-gray-700">{event.title}</div>
+                            <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
                           </th>
                         );
                       })}
@@ -1159,36 +1217,35 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                   <tbody className="divide-y divide-gray-100">
                     {filteredUsers.map((u) => (
                       <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-3 sticky left-0 bg-white z-10 border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                        <td className="px-3 py-3 sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
                           <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
                           <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
                         </td>
-                        {visibleEvents.map(event => {
+                      {visibleEvents.map(event => {
                           const status = u.responses?.[event.id] || 'undecided';
                           const comment = u.comments?.[event.id]; 
                           
                           let symbol = '－';
                           let colorClass = 'text-gray-300';
                           
-                          if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/50'; }
-                          if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/50'; }
-                          if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-600 font-bold bg-yellow-50/50'; }
-                          if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-600 font-bold bg-purple-50/50'; }
+                          if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/30'; }
+                          if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/30'; }
+                          if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-500 font-bold bg-yellow-50/30'; }
+                          if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-500 font-bold bg-purple-50/30'; }
 
                           return (
                             <td 
                               key={`${u.uid}-${event.id}`} 
-                              className={`px-1 py-2 text-center shadow-[inset_1px_0_0_#f3f4f6,inset_0_-1px_0_#f3f4f6] ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
+                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
                               title={comment || ''}
                               onClick={() => {
-                                // alert() の代わりにカスタムモーダル用の状態をセット
                                 if (comment) setSelectedComment({ name: u.name, comment: comment });
                               }}
                             >
                               <div className="flex flex-col items-center justify-center">
                                 <span>{symbol}</span>
                                 {comment && (
-                                  <span className="text-[8px] sm:text-[9px] text-gray-600 bg-white/90 px-1.5 mt-0.5 rounded border border-gray-200 truncate w-12 sm:w-16 shadow-sm">
+                                  <span className="text-[8px] sm:text-[9px] text-gray-600 bg-white/80 px-1.5 mt-0.5 rounded border border-gray-200 truncate w-12 sm:w-16 shadow-sm">
                                     {comment}
                                   </span>
                                 )}
@@ -1209,31 +1266,26 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onL
                 </table>
               </div>
             </div>
-            
           </div>
         )}
 
-{/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
+        {/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
         {activeTab === 'admin' && (
           <AdminPanel currentEvents={events} onAddEvents={onAddEvents} onTogglePublish={onTogglePublish} />
         )}
       </main>
 
-
+      {/* --- カスタムコメントモーダル --- */}
       {selectedComment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs border border-gray-100 transform transition-all scale-100">
-            <h3 className="text-sm font-bold text-gray-500 mb-2">
-              {selectedComment.name} さんのコメント
-            </h3>
+            <h3 className="text-sm font-bold text-gray-500 mb-2">{selectedComment.name} さんのコメント</h3>
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
-              <p className="text-base text-gray-800 font-medium whitespace-pre-wrap">
-                {selectedComment.comment}
-              </p>
+              <p className="text-base text-gray-800 font-medium whitespace-pre-wrap">{selectedComment.comment}</p>
             </div>
             <button 
-              onClick={() => setSelectedComment(null)}
-              className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all shadow-md shadow-indigo-100"
+              onClick={() => setSelectedComment(null)} 
+              className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition-all"
             >
               閉じる
             </button>
@@ -1434,6 +1486,27 @@ export default function App() {
     return <AuthScreen onLogin={handleLogin} />;
   }
 
+  
+// 一括更新ロジック (Firestoreドット記法で最適化)
+  const handleBatchUpdate = async (eventIds, status, comment) => {
+    if (!user || eventIds.length === 0) return;
+    const nr = { ...user.responses };
+    const nc = { ...(user.comments || {}) };
+    const updates = { updatedAt: serverTimestamp() };
+    eventIds.forEach(id => {
+      nr[id] = status; 
+      updates[`responses.${id}`] = status; // 他人の回答を壊さないドット記法
+      if (comment) { 
+        nc[id] = comment; 
+        updates[`comments.${id}`] = comment; 
+      }
+    });
+    setUser({ ...user, responses: nr, comments: nc });
+    try { 
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), updates); 
+    } catch (e) { alert("更新に失敗しました"); }
+  };
+
   return (
     <Dashboard 
       user={user} 
@@ -1441,21 +1514,10 @@ export default function App() {
       allData={allData} 
       onUpdateStatus={handleUpdateStatus} 
       onUpdateComment={handleUpdateComment}
+      onBatchUpdate={handleBatchUpdate} // 追加
       onLogout={handleLogout}
       onAddEvents={handleAddEvents}
       onTogglePublish={handleTogglePublish}
     />
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
