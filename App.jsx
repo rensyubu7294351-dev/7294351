@@ -284,7 +284,8 @@ const imageSrc = color === 'red'
       className={`daruma-icon ${className}`} 
       style={{ 
         ...style, 
-        objectFit: 'contain' 
+        objectFit: 'contain' ,
+        mixBlendMode: 'multiply'
         
       }} 
     />
@@ -1544,6 +1545,7 @@ const handleBatchUpdate = async (eventIds, status, comment) => {
     />
   );
 }
+
 
 
 
