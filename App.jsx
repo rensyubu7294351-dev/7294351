@@ -285,7 +285,7 @@ const imageSrc = color === 'red'
       style={{ 
         ...style, 
         objectFit: 'contain' 
-        mixBlendMode: 'multiply'
+        
       }} 
     />
   );
@@ -1544,6 +1544,7 @@ const handleBatchUpdate = async (eventIds, status, comment) => {
     />
   );
 }
+
 
 
 
