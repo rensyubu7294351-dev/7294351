@@ -273,20 +273,20 @@ const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
-  const mainColor = color === 'red' ? '#ef4444' : '#3b82f6'; // Tailwind red-500 / blue-500
+const imageSrc = color === 'red' 
+    ? 'public/images/赤だるま.png'  // 赤だるまの画像パス
+    : 'public/images/青だるま.png'; // 青だるまの画像パス
+
   return (
-    <svg 
-      viewBox="0 0 100 100" 
+    <img 
+      src={imageSrc} 
+      alt={`${color} daruma`}
       className={`daruma-icon ${className}`} 
-      style={style}
-    >
-      <path d="M50 95 C25 95 10 80 10 55 C10 30 25 5 50 5 C75 5 90 30 90 55 C90 80 75 95 50 95 Z" fill={mainColor} />
-      <circle cx="50" cy="45" r="30" fill="white" />
-      <circle cx="38" cy="45" r="4" fill="black" />
-      <circle cx="62" cy="45" r="4" fill="black" />
-      <path d="M35 55 Q50 65 65 55" stroke="black" strokeWidth="2" fill="none" opacity="0.3" />
-      <path d="M30 75 Q50 90 70 75" stroke="gold" strokeWidth="3" fill="none" />
-    </svg>
+      style={{ 
+        ...style, 
+        objectFit: 'contain' 
+      }} 
+    />
   );
 };
 
@@ -305,7 +305,7 @@ const DarumaBackground = () => {
       if (animationType === 'anim-bounce') {
         duration = 1.5 + Math.random() * 1.5; // 1.5秒〜3.0秒 (ぴょんぴょん速く)
       } else if (animationType === 'anim-roll') {
-        duration = 7 + Math.random() * 5;    // 5秒〜10秒 (転がる速度アップ)
+        duration = 5 + Math.random() * 5;    // 5秒〜10秒 (転がる速度アップ)
       } else {
         duration = 2 + Math.random() * 4;    // 3秒〜7秒 (揺れも少し速く)
       }
@@ -1543,6 +1543,7 @@ const handleBatchUpdate = async (eventIds, status, comment) => {
     />
   );
 }
+
 
 
 
