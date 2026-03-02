@@ -598,18 +598,7 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
     setSelectedEventIds(new Set());
   };
 
-  const handleDeleteAllEvents = async () => {
-    if (window.confirm("現在公開されているすべての予定を削除しますか？\n（この操作は元に戻せません）")) {
-      try {
-        const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
-        await setDoc(eventsRef, { items: [] }); 
-        alert("すべての予定を削除しました。");
-      } catch (e) {
-        console.error(e);
-        alert("削除に失敗しました。");
-      }
-    }
-  };
+
 
   const handleSelectAll = () => {
     const allIds = new Set(fetchedEvents.map(e => e.id));
@@ -1545,6 +1534,7 @@ const handleBatchUpdate = async (eventIds, status, comment) => {
     />
   );
 }
+
 
 
 
