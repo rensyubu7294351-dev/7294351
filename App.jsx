@@ -776,8 +776,22 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onB
   const [batchStatus, setBatchStatus] = useState('absent');
   const [batchComment, setBatchComment] = useState('');
 
-  const visibleEvents = useMemo(() => {
-    return events.filter(e => e.isPublished !== false);
+const visibleEvents = useMemo(() => {
+    // 確実な日本時間 (JST) で今日の日付文字列 (YYYY-MM-DD) を生成する
+    const jstDateString = new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+    
+    // '2026/02/28' を '2026-02-28' の形式に変換
+    const todayStr = jstDateString.replace(/\//g, '-');
+
+    // 「公開中」かつ「日本時間で今日以降」の予定のみに絞り込む
+    return events.filter(e => 
+      e.isPublished !== false && e.date >= todayStr
+    );
   }, [events]);
 
   const filteredUsers = useMemo(() => {
