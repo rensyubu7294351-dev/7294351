@@ -15,8 +15,7 @@ import {
   getDoc,
   onSnapshot, 
   serverTimestamp,
-  updateDoc,
-  arrayUnion
+  updateDoc
 } from 'firebase/firestore';
 import { 
   Calendar, 
@@ -30,7 +29,6 @@ import {
   Lock,
   Plus,
   RefreshCw,
-  LogIn,
   AlertCircle,
   Eye,
   EyeOff,
@@ -71,7 +69,6 @@ const FAMILIES = [
 
 // ★★★ メンバー名簿 ★★★
 const MEMBER_LIST = [
-  // おせきファミリー
   { family: "おせきファミリー", name: "おせき" },
   { family: "おせきファミリー", name: "のん" },
   { family: "おせきファミリー", name: "ぴーじー" },
@@ -85,7 +82,6 @@ const MEMBER_LIST = [
   { family: "おせきファミリー", name: "そそ" },
   { family: "おせきファミリー", name: "あいか" },
 
-  // けんすけファミリー
   { family: "けんすけファミリー", name: "健康なスケベ" },
   { family: "けんすけファミリー", name: "れいす" },
   { family: "けんすけファミリー", name: "フェンネル" },
@@ -99,7 +95,6 @@ const MEMBER_LIST = [
   { family: "けんすけファミリー", name: "こばなな" },
   { family: "けんすけファミリー", name: "かに" },
 
-  // スクラブファミリー
   { family: "スクラブファミリー", name: "スクラブ" },
   { family: "スクラブファミリー", name: "わたけー" },
   { family: "スクラブファミリー", name: "かなん" },
@@ -113,7 +108,6 @@ const MEMBER_LIST = [
   { family: "スクラブファミリー", name: "ちゃあ" },
   { family: "スクラブファミリー", name: "くり" },
 
-  // みやぞんファミリー
   { family: "みやぞんファミリー", name: "みやぞん" },
   { family: "みやぞんファミリー", name: "ちょね" },
   { family: "みやぞんファミリー", name: "キャラキャラメルト" },
@@ -127,7 +121,6 @@ const MEMBER_LIST = [
   { family: "みやぞんファミリー", name: "ちゃんもり" },
   { family: "みやぞんファミリー", name: "鈴木ひかり" },
 
-  // ちーたるファミリー
   { family: "ちーたるファミリー", name: "ちーたる" },
   { family: "ちーたるファミリー", name: "八重" },
   { family: "ちーたるファミリー", name: "りょく" },
@@ -141,7 +134,6 @@ const MEMBER_LIST = [
   { family: "ちーたるファミリー", name: "ぜよ" },
   { family: "ちーたるファミリー", name: "せら" },
 
-  // ばなファミリー
   { family: "ばなファミリー", name: "ばな" },
   { family: "ばなファミリー", name: "IC" },
   { family: "ばなファミリー", name: "きょうこ" },
@@ -155,7 +147,6 @@ const MEMBER_LIST = [
   { family: "ばなファミリー", name: "なつ" },
   { family: "ばなファミリー", name: "シオン" },
 
-  // ぴーファミリー
   { family: "ぴーファミリー", name: "ぴー" },
   { family: "ぴーファミリー", name: "おっくん" },
   { family: "ぴーファミリー", name: "そういち" },
@@ -168,7 +159,6 @@ const MEMBER_LIST = [
   { family: "ぴーファミリー", name: "とぅーりお" },
   { family: "ぴーファミリー", name: "かごめ" },
 
-  // ぴょんファミリー
   { family: "ぴょんファミリー", name: "ぴょん" },
   { family: "ぴょんファミリー", name: "サツカワ　レオ" },
   { family: "ぴょんファミリー", name: "さき" },
@@ -182,7 +172,6 @@ const MEMBER_LIST = [
   { family: "ぴょんファミリー", name: "なっち" },
   { family: "ぴょんファミリー", name: "れん" },
 
-  // まちゃぴファミリー
   { family: "まちゃぴファミリー", name: "まちゃぴ" },
   { family: "まちゃぴファミリー", name: "ことー" },
   { family: "まちゃぴファミリー", name: "たかゆか" },
@@ -195,7 +184,6 @@ const MEMBER_LIST = [
   { family: "まちゃぴファミリー", name: "わか" },
   { family: "まちゃぴファミリー", name: "とみー" },
 
-  // みぃファミリー
   { family: "みぃファミリー", name: "みぃ" },
   { family: "みぃファミリー", name: "ぺちか" },
   { family: "みぃファミリー", name: "たいしょー" },
@@ -209,7 +197,6 @@ const MEMBER_LIST = [
   { family: "みぃファミリー", name: "あずみ" },
   { family: "みぃファミリー", name: "いもたる" },
 
-  // ゆつきファミリー
   { family: "ゆつきファミリー", name: "ゆつき" },
   { family: "ゆつきファミリー", name: "ちゅーきち" },
   { family: "ゆつきファミリー", name: "びっくりドンキー" },
@@ -223,7 +210,6 @@ const MEMBER_LIST = [
   { family: "ゆつきファミリー", name: "4649" },
   { family: "ゆつきファミリー", name: "らび" },
 
-  // 甘ドリファミリー
   { family: "甘ドリファミリー", name: "甘どり" },
   { family: "甘ドリファミリー", name: "スナ" },
   { family: "甘ドリファミリー", name: "少年" },
@@ -235,7 +221,7 @@ const MEMBER_LIST = [
   { family: "甘ドリファミリー", name: "りーしゃん" },
   { family: "甘ドリファミリー", name: "田中真菜実" },
   { family: "甘ドリファミリー", name: "ゆり" },
-  { family: "甘ドリファミリー", name: "みどり" },
+  { family: "甘ドリファミリー", name: "みどり" }
 ];
 
 const STATUS_OPTIONS = {
@@ -243,7 +229,7 @@ const STATUS_OPTIONS = {
   absent: { label: '欠席', color: 'bg-red-100 text-red-700 border-red-300', icon: XCircle },
   late: { label: '遅刻/早退', color: 'bg-yellow-100 text-yellow-700 border-yellow-300', icon: HelpCircle },
   tentative: { label: '未確定', color: 'bg-purple-100 text-purple-700 border-purple-300', icon: HelpCircle },
-  undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle },
+  undecided: { label: '未定', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: HelpCircle }
 };
 
 const ADMIN_PASSWORD = "729yosa"; 
@@ -259,21 +245,20 @@ const getDayInfo = (dateString) => {
   const dayStr = days[dayIndex];
 
   let colorClass = 'bg-gray-100 text-gray-600'; 
-  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200'; // Sun: Green
-  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';   // Wed: Light Blue
-  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';   // Sat: Pink
+  if (dayIndex === 0) colorClass = 'bg-green-100 text-green-700 border-green-200';
+  if (dayIndex === 3) colorClass = 'bg-cyan-100 text-cyan-700 border-cyan-200';
+  if (dayIndex === 6) colorClass = 'bg-pink-100 text-pink-700 border-pink-200';
 
   return { dayStr, colorClass };
 };
 
-// LocalStorage Key
 const LS_USER_ID_KEY = `yosakoi_app_user_id_${appId}`;
 
 // --- Components ---
 
 // ダルマSVGコンポーネント
 const DarumaIcon = ({ color, className, style }) => {
-const imageSrc = color === 'red' 
+  const imageSrc = color === 'red' 
     ? '/images/red_daruma-.png'  
     : '/images/blue_daruma.png'; 
 
@@ -284,7 +269,7 @@ const imageSrc = color === 'red'
       className={`daruma-icon ${className}`} 
       style={{ 
         ...style, 
-        objectFit: 'contain' ,
+        objectFit: 'contain',
         mixBlendMode: 'multiply'
       }} 
     />
@@ -347,21 +332,16 @@ const DarumaBackground = () => {
   );
 };
 
-
 // 1. Auth Screen
 const AuthScreen = ({ onLogin }) => {
   const [family, setFamily] = useState('');
   const [selectedName, setSelectedName] = useState('');
-
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const familyMembers = useMemo(() => {
     if (!family) return [];
-    
-    return MEMBER_LIST
-      .filter(m => m.family === family)
-      .sort((a, b) => 0); 
+    return MEMBER_LIST.filter(m => m.family === family).sort((a, b) => 0); 
   }, [family]);
 
   const handleLoginSubmit = (e) => {
@@ -381,7 +361,7 @@ const AuthScreen = ({ onLogin }) => {
   };
 
   return (
-<div className="min-h-screen flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden">
       
       <DarumaBackground />
 
@@ -421,8 +401,7 @@ const AuthScreen = ({ onLogin }) => {
         <form onSubmit={handleLoginSubmit} className="space-y-4">
           <div className="bg-blue-50 p-3 rounded-lg flex gap-2 items-start text-xs text-blue-700 mb-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <p>あなたの所属ファミリーと名前を選んで
-                「ログイン」を押してください。</p>
+              <p>あなたの所属ファミリーと名前を選んで「ログイン」を押してください。</p>
           </div>
 
           <div>
@@ -448,14 +427,12 @@ const AuthScreen = ({ onLogin }) => {
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">名前を選択</label>
             <div className="relative">
-              
               {!family && (
                 <div 
-                  className="absolute inset-0 z-10" 
+                  className="absolute inset-0 z-10 cursor-pointer" 
                   onClick={() => showAlert("先にファミリーを選択してください！")}
                 />
               )}
-
               <select
                 value={selectedName}
                 onChange={(e) => setSelectedName(e.target.value)}
@@ -519,7 +496,6 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       
       const now = new Date();
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      // 当月を含めて3ヶ月間（今月、来月、再来月）取得するように変更
       const endOfThreeMonths = new Date(now.getFullYear(), now.getMonth() + 3, 0, 23, 59, 59);
 
       const timeMin = startOfToday.toISOString();
@@ -531,12 +507,9 @@ const AdminPanel = ({ currentEvents, onAddEvents, onTogglePublish }) => {
       if (!response.ok) throw new Error("取得失敗");
       
       const data = await response.json();
-      console.log("★★Googleから届いた生データ★★:", data.items); 
 
       const targetColorIds = ['1', '5', '6'];
       
-      const currentIds = new Set(currentEvents.map(e => e.id));
-
       const newCandidates = (data.items || [])
         .filter(event => {
            if (!event.colorId) return true;
@@ -777,7 +750,7 @@ const Dashboard = ({ user, events, allData, onUpdateStatus, onUpdateComment, onB
   const [batchStatus, setBatchStatus] = useState('absent');
   const [batchComment, setBatchComment] = useState('');
 
-const visibleEvents = useMemo(() => {
+  const visibleEvents = useMemo(() => {
     // 確実な日本時間 (JST) で今日の日付文字列 (YYYY-MM-DD) を生成する
     const jstDateString = new Intl.DateTimeFormat('ja-JP', {
       timeZone: 'Asia/Tokyo',
@@ -790,9 +763,7 @@ const visibleEvents = useMemo(() => {
     const todayStr = jstDateString.replace(/\//g, '-');
 
     // 「公開中」かつ「日本時間で今日以降」の予定のみに絞り込む
-    return events.filter(e => 
-      e.isPublished !== false && e.date >= todayStr
-    );
+    return events.filter(e => e.isPublished !== false && e.date >= todayStr);
   }, [events]);
 
   const filteredUsers = useMemo(() => {
@@ -846,20 +817,17 @@ const visibleEvents = useMemo(() => {
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm safe-area-top">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-          
           <div className="flex items-center gap-2 shrink-0">
             <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0 hidden sm:block">
               <Calendar className="w-4 h-4 text-white" />
             </div>
             <h1 className="font-bold text-gray-800 text-sm sm:text-base md:text-lg truncate">練習出欠管理アプリ</h1>
           </div>
-
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div className="text-right min-w-0">
               <div className="text-[10px] sm:text-xs text-gray-500 truncate">{user.family}</div>
               <div className="text-sm sm:text-base font-bold text-indigo-700 truncate">{user.name}</div>
             </div>
-            
             <button 
               onClick={onLogout}
               className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition shrink-0"
@@ -870,7 +838,6 @@ const visibleEvents = useMemo(() => {
             </button>
           </div>
         </div>
-        
         <div className="flex border-t border-gray-100 bg-white">
           <button 
             onClick={() => setActiveTab('input')}
@@ -896,9 +863,7 @@ const visibleEvents = useMemo(() => {
         </div>
       </header>
 
-
       <main className="max-w-4xl mx-auto w-full p-4 flex-1 pb-20 safe-area-bottom">
-        
         {/* --- VIEW 1: INPUT MODE (Uses visibleEvents) --- */}
         {activeTab === 'input' && (
           <div className="space-y-4">
@@ -907,11 +872,9 @@ const visibleEvents = useMemo(() => {
                 現在登録されている練習予定はありません
               </div>
             )}
-            
             {visibleEvents.map(event => {
               const myStatus = allData[user.uid]?.responses?.[event.id] || 'undecided';
               const { dayStr, colorClass } = getDayInfo(event.date);
-              
               return (
                 <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md">
                   <div className="p-5 border-b border-gray-100">
@@ -994,7 +957,6 @@ const visibleEvents = useMemo(() => {
                       </button>
                     </div>
                   </div>
-
                 </div>
               );
             })}
@@ -1014,15 +976,12 @@ const visibleEvents = useMemo(() => {
                 <span>{isSaving ? '保存完了' : '変更を保存'}</span>
               </button>
             </div>
-
           </div>
         )}
 
-        
         {isBatchModalOpen && (
           <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
-              
               <div className="p-6 bg-indigo-900 text-white">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -1037,7 +996,6 @@ const visibleEvents = useMemo(() => {
                 </div>
               </div>
 
-             
               <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
                 <div className="grid grid-cols-3 gap-3">
                   {visibleEvents.map(event => {
@@ -1051,25 +1009,21 @@ const visibleEvents = useMemo(() => {
                           isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-200 text-gray-500'
                         }`}
                       >
-
                         <div className="flex items-center gap-1 mb-1.5">
                           <span className="text-xs sm:text-sm font-bold">{event.date.slice(5).replace('-', '/')}</span>
                           <span className="text-[10px] font-bold">{dayStr}</span>
                         </div>
-                        
                         <span className={`text-[8px] sm:text-[9px] mb-1.5 px-1 py-0.5 rounded w-full text-center truncate ${
                           isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
                         }`}>
                           {event.time}
                         </span>
-                        
                         <span 
                           className="text-[9px] sm:text-[10px] font-bold text-center leading-tight w-full"
                           style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                         >
                           {event.title}
                         </span>
-                        
                         {isSelected && (
                           <div className="absolute -top-2 -right-2 bg-white text-indigo-600 rounded-full border-2 border-indigo-600 shadow-sm">
                             <CheckCircle2 className="w-4 h-4" />
@@ -1081,6 +1035,434 @@ const visibleEvents = useMemo(() => {
                 </div>
               </div>
 
-             
               <div className="p-6 bg-white border-t grid grid-cols-2 gap-3">
-                <button onClick={() => setIsBatchModalOpen(false)} className="py-3 rounded-xl font-bold bg-gray-100
+                <button onClick={() => setIsBatchModalOpen(false)} className="py-3 rounded-xl font-bold bg-gray-100 text-gray-500">キャンセル</button>
+                <button onClick={handleApplyBatch} disabled={selectedEventIds.size === 0 || isSaving} className="py-3 rounded-xl font-bold bg-indigo-600 text-white disabled:opacity-50">
+                  {isSaving ? '保存中...' : `${selectedEventIds.size}件を更新`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- VIEW 2: LIST MODE (Uses visibleEvents) --- */}
+        {activeTab === 'list' && (
+          <div className="space-y-5">
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+                <Filter className="w-4 h-4 text-gray-400 shrink-0 ml-1" />
+                <button
+                  onClick={() => setSelectedFamilyFilter('COMMENTED')}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition shrink-0 flex items-center justify-center gap-1 ${
+                    selectedFamilyFilter === 'COMMENTED' 
+                      ? 'bg-purple-600 text-white shadow-md' 
+                      : 'bg-purple-50 text-purple-600 border border-purple-100'
+                  }`}
+                >
+                  💬 コメントあり
+                </button>
+                <button
+                  onClick={() => setSelectedFamilyFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex flex-col items-center gap-1 ${
+                    selectedFamilyFilter === 'ALL' 
+                      ? 'bg-gray-800 text-white shadow-md' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <span>全員</span>
+                  <div className="flex items-center gap-1 w-full opacity-90">
+                    <div className={`w-10 h-1.5 rounded-full overflow-hidden ${selectedFamilyFilter === 'ALL' ? 'bg-gray-600' : 'bg-gray-300'}`}>
+                      <div className="h-full bg-green-400 transition-all" style={{ width: `${getFamilyResponseRate('ALL')}%` }} />
+                    </div>
+                    <span className="text-[8px] leading-none font-normal">{getFamilyResponseRate('ALL')}%</span>
+                  </div>
+                </button>
+                {FAMILIES.map(fam => {
+                  const rate = getFamilyResponseRate(fam);
+                  const isSelected = selectedFamilyFilter === fam;
+                  return (
+                    <button
+                      key={fam}
+                      onClick={() => setSelectedFamilyFilter(fam)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 flex flex-col items-center gap-1 ${
+                        isSelected 
+                          ? 'bg-indigo-600 text-white shadow-md' 
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      <span>{fam.replace('ファミリー', '')}</span>
+                      <div className="flex items-center gap-1 w-full opacity-90">
+                        <div className={`w-10 h-1.5 rounded-full overflow-hidden ${isSelected ? 'bg-indigo-400' : 'bg-gray-300'}`}>
+                          <div className="h-full bg-green-400 transition-all" style={{ width: `${rate}%` }} />
+                        </div>
+                        <span className="text-[8px] leading-none font-normal">{rate}%</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
+              <div className="flex gap-3 w-max">
+                {visibleEvents.map(event => {
+                  const counts = getEventCounts(event.id);
+                  const { dayStr, colorClass } = getDayInfo(event.date);
+                  return (
+                    <div key={event.id} className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 w-44 shrink-0">
+                      <div className={`text-[10px] mb-1 font-bold inline-block px-1.5 py-0.5 rounded ${colorClass}`}>
+                        {event.date.slice(5)} {dayStr} {event.time.split('-')[0]}~
+                      </div>
+                      <div className="text-xs font-bold text-gray-800 truncate mb-1.5">{event.title}</div>
+                      <div className="mb-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100">
+                        <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                          <span>回答率</span>
+                          <span className="font-bold text-indigo-600">{counts.rate}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${counts.rate}%` }} />
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-[10px] font-bold">
+                        <span className="text-green-600">○ {counts.present}</span>
+                        <span className="text-yellow-600">△ {counts.late}</span>
+                        <span className="text-red-500">× {counts.absent}</span>
+                        <span className="text-purple-500">？ {counts.tentative}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative flex flex-col h-[75vh]">
+              <div className="overflow-auto flex-1 overscroll-none">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
+                    <tr>
+                      <th className="px-3 py-3 sticky left-0 top-0 bg-gray-50 z-40 w-32 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-xs border-r border-gray-200">
+                        名前 ({filteredUsers.length})
+                      </th>
+                      {visibleEvents.map(event => {
+                        const { dayStr } = getDayInfo(event.date);
+                        return (
+                          <th key={event.id} className="px-1 py-2 min-w-[70px] text-center font-normal border-l border-gray-100 sticky top-0 bg-gray-50 z-30 shadow-[0_2px_5px_-2px_rgba(0,0,0,0.05)]">
+                            <div className="text-[10px] text-gray-400 leading-none mb-1">{event.date.slice(5)}{dayStr}</div>
+                            <div className="truncate w-[70px] mx-auto text-[10px] leading-tight">{event.title}</div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredUsers.map((u) => (
+                      <tr key={u.uid} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-3 py-3 sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-gray-100">
+                          <div className="font-bold text-gray-800 text-xs sm:text-sm truncate w-28">{u.name}</div>
+                          <div className="text-[10px] text-gray-400 truncate w-28">{u.family.replace('ファミリー', '')}</div>
+                        </td>
+                      {visibleEvents.map(event => {
+                          const status = u.responses?.[event.id] || 'undecided';
+                          const comment = u.comments?.[event.id]; 
+                          let symbol = '－';
+                          let colorClass = 'text-gray-300';
+                          if (status === 'present') { symbol = '○'; colorClass = 'text-green-600 font-bold bg-green-50/30'; }
+                          if (status === 'absent') { symbol = '×'; colorClass = 'text-red-400 bg-red-50/30'; }
+                          if (status === 'late') { symbol = '△'; colorClass = 'text-yellow-500 font-bold bg-yellow-50/30'; }
+                          if (status === 'tentative') { symbol = '？'; colorClass = 'text-purple-500 font-bold bg-purple-50/30'; }
+
+                          return (
+                            <td 
+                              key={`${u.uid}-${event.id}`} 
+                              className={`px-1 py-2 text-center border-l border-gray-100 ${colorClass} ${comment ? 'cursor-pointer active:opacity-50' : ''}`} 
+                              title={comment || ''}
+                              onClick={() => {
+                                if (comment) setSelectedComment({ name: u.name, comment: comment });
+                              }}
+                            >
+                              <div className="flex flex-col items-center justify-center">
+                                <span>{symbol}</span>
+                                {comment && (
+                                  <span className="text-[8px] sm:text-[9px] text-gray-600 bg-white/80 px-1.5 mt-0.5 rounded border border-gray-200 truncate w-12 sm:w-16 shadow-sm">
+                                    {comment}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    {filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan={visibleEvents.length + 1} className="px-4 py-12 text-center text-gray-400 text-xs">
+                          表示するメンバーがいません
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- VIEW 3: ADMIN MODE (Uses all events) --- */}
+        {activeTab === 'admin' && (
+          <AdminPanel currentEvents={events} onAddEvents={onAddEvents} onTogglePublish={onTogglePublish} />
+        )}
+      </main>
+
+      {/* --- カスタムコメントモーダル --- */}
+      {selectedComment && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs border border-gray-100 transform transition-all scale-100">
+            <h3 className="text-sm font-bold text-gray-500 mb-2">{selectedComment.name} さんのコメント</h3>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+              <p className="text-base text-gray-800 font-medium whitespace-pre-wrap">{selectedComment.comment}</p>
+            </div>
+            <button 
+              onClick={() => setSelectedComment(null)} 
+              className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition-all"
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// 5. Main App Container
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [allData, setAllData] = useState({});
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const savedUserId = localStorage.getItem(LS_USER_ID_KEY);
+    
+    const initApp = async () => {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
+    };
+    initApp();
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
+        const unsubscribeEvents = onSnapshot(eventsRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const rawItems = docSnap.data().items || [];
+            const jstDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+            const y = jstDate.getFullYear();
+            const m = String(jstDate.getMonth() + 1).padStart(2, '0');
+            const thresholdDateStr = `${y}-${m}-01`;
+
+            const items = rawItems.filter(item => item.date >= thresholdDateStr);
+            items.sort((a, b) => new Date(`${a.date} ${a.time.split('-')[0]}`) - new Date(`${b.date} ${b.time.split('-')[0]}`));
+            setEvents(items);
+          } else {
+            setDoc(eventsRef, { items: [] });
+            setEvents([]);
+          }
+        });
+
+        const dataRef = collection(db, 'artifacts', appId, 'public', 'data', 'attendance');
+        const unsubscribeData = onSnapshot(dataRef, (snapshot) => {
+          const data = {};
+          snapshot.forEach(doc => {
+            data[doc.id] = { uid: doc.id, ...doc.data() };
+          });
+          setAllData(data);
+          if (!user && savedUserId) {
+            if (data[savedUserId]) {
+              setUser({ uid: savedUserId, ...data[savedUserId] });
+            } 
+          }
+          setLoading(false);
+        });
+        
+        return () => {
+          unsubscribeEvents();
+          unsubscribeData();
+        };
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []); 
+
+  const handleLogin = async (family, name) => {
+    const userId = `${family}_${name}`;
+    try {
+      let userData = allData[userId];
+      if (!userData) {
+         userData = {
+          name,
+          family,
+          responses: {},
+          updatedAt: serverTimestamp(),
+        };
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', userId), userData);
+      }
+      localStorage.setItem(LS_USER_ID_KEY, userId);
+      setUser({ uid: userId, ...userData });
+    } catch (e) {
+      console.error("Error:", e);
+      alert("ログインに失敗しました");
+    }
+  };
+
+  const handleUpdateStatus = async (eventId, status) => {
+    if (!user) return;
+    const newResponses = { ...user.responses, [eventId]: status };
+    const newComments = { ...(user.comments || {}) };
+    const updates = {
+      [`responses.${eventId}`]: status,
+      updatedAt: serverTimestamp()
+    };
+    if (status === 'present') {
+      newComments[eventId] = '';
+      updates[`comments.${eventId}`] = ''; 
+    }
+    setUser({ ...user, responses: newResponses, comments: newComments }); 
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), updates);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleUpdateComment = async (eventId, comment) => {
+    if (!user) return;
+    const newComments = { ...(user.comments || {}), [eventId]: comment };
+    setUser({ ...user, comments: newComments }); 
+    try {
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), {
+        comments: newComments,
+        updatedAt: serverTimestamp()
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  const handleTogglePublish = async (eventId) => {
+    try {
+      const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
+      const docSnap = await getDoc(eventsRef);
+      if (docSnap.exists()) {
+        const items = docSnap.data().items || [];
+        const updatedItems = items.map(item => {
+          if (item.id === eventId) {
+            const currentStatus = item.isPublished !== false; 
+            return { ...item, isPublished: !currentStatus };
+          }
+          return item;
+        });
+        await updateDoc(eventsRef, { items: updatedItems });
+      }
+    } catch (e) {
+      console.error(e);
+      alert("更新に失敗しました");
+    }
+  };
+
+  const handleAddEvents = async (newEvents) => {
+    try {
+      const eventsRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'events');
+      const docSnap = await getDoc(eventsRef);
+      let currentItems = [];
+      if (docSnap.exists()) {
+        currentItems = docSnap.data().items || [];
+      }
+
+      const jstDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+      const y = jstDate.getFullYear();
+      const m = String(jstDate.getMonth() + 1).padStart(2, '0');
+      const thresholdDateStr = `${y}-${m}-01`;
+
+      let updatedItems = currentItems.filter(item => item.date >= thresholdDateStr);
+
+      newEvents.forEach(newEvent => {
+        const index = updatedItems.findIndex(item => item.id === newEvent.id);
+        if (index > -1) {
+          updatedItems[index] = { 
+            ...newEvent, 
+            isPublished: updatedItems[index].isPublished !== false 
+          };
+        } else {
+          updatedItems.push({ ...newEvent, isPublished: true });
+        }
+      });
+
+      await updateDoc(eventsRef, { items: updatedItems });
+      alert(`${newEvents.length}件の予定を更新/追加しました\n（先月以前の予定は自動削除されました）`);
+    } catch (e) {
+      console.error(e);
+      alert("失敗しました");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(LS_USER_ID_KEY);
+    setUser(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen onLogin={handleLogin} />;
+  }
+
+  const handleBatchUpdate = async (eventIds, status, comment) => {
+    if (!user || eventIds.length === 0) return;
+    const nr = { ...user.responses };
+    const nc = { ...(user.comments || {}) };
+    const updates = { updatedAt: serverTimestamp() };
+    
+    eventIds.forEach(id => {
+      nr[id] = status; 
+      updates[`responses.${id}`] = status; 
+      
+      if (status === 'present') {
+        nc[id] = '';
+        updates[`comments.${id}`] = '';
+      } 
+      else if (comment !== undefined && comment !== null) { 
+        nc[id] = comment; 
+        updates[`comments.${id}`] = comment; 
+      }
+    });
+    
+    setUser({ ...user, responses: nr, comments: nc });
+    
+    try { 
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendance', user.uid), updates); 
+    } catch (e) { alert("更新に失敗しました"); }
+  };
+
+  return (
+    <Dashboard 
+      user={user} 
+      events={events} 
+      allData={allData} 
+      onUpdateStatus={handleUpdateStatus} 
+      onUpdateComment={handleUpdateComment}
+      onBatchUpdate={handleBatchUpdate}
+      onLogout={handleLogout}
+      onAddEvents={handleAddEvents}
+      onTogglePublish={handleTogglePublish}
+    />
+  );
+}
