@@ -225,8 +225,7 @@ const MEMBER_LIST = [
   { family: "甘ドリファミリー", name: "みどり" },
 
   { family: "その他メンバー", name: "ケミカル" },
-  { family: "その他メンバー", name: "釈迦" },
-  { family: "その他メンバー", name: "ヤスキ" }
+  { family: "その他メンバー", name: "釈迦" }
 
 ];
 
