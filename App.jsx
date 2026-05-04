@@ -64,7 +64,8 @@ const FAMILIES = [
   "まちゃぴファミリー",
   "みぃファミリー",
   "ゆつきファミリー",
-  "甘ドリファミリー"
+  "甘ドリファミリー",
+  "その他メンバー"
 ];
 
 // ★★★ メンバー名簿 ★★★
@@ -155,7 +156,7 @@ const MEMBER_LIST = [
   { family: "ぴーファミリー", name: "しゅんすけ" },
   { family: "ぴーファミリー", name: "もえきゅん" },
   { family: "ぴーファミリー", name: "かんな" },
-  { family: "ぴーファミリー", name: "鈴木優花" },
+  { family: "ぴーファミリー", name: "メドレー" },
   { family: "ぴーファミリー", name: "とぅーりお" },
   { family: "ぴーファミリー", name: "かごめ" },
 
@@ -221,7 +222,12 @@ const MEMBER_LIST = [
   { family: "甘ドリファミリー", name: "りーしゃん" },
   { family: "甘ドリファミリー", name: "田中真菜実" },
   { family: "甘ドリファミリー", name: "ゆり" },
-  { family: "甘ドリファミリー", name: "みどり" }
+  { family: "甘ドリファミリー", name: "みどり" },
+
+  { family: "その他メンバー", name: "ケミカル" },
+  { family: "その他メンバー", name: "釈迦" },
+  { family: "その他メンバー", name: "ヤスキ" }
+
 ];
 
 const STATUS_OPTIONS = {
